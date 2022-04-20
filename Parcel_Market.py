@@ -38,7 +38,8 @@ class HiddenPrints: #
 varDict = {}
 '''FOR ALL MODULES'''
 cwd = os.getcwd().replace(os.sep, '/')
-datapath = cwd.replace('Code', '')
+datapath = cwd.replace('Code', '')# + "/Parcel_Market"
+
 
 
 #%% Define all variables
@@ -54,7 +55,20 @@ def generate_args(method):
         if sys.argv[0] == '':
             params_file = open(f'{datapath}/Input/Params_ParcelMarket.txt')
             
-            # varDict['LABEL'	]			= sys.argv[1]				
+            # This are the defaults, might need to change for console run!!!
+            varDict['LABEL'	]			= 'Test'				
+            varDict['DATAPATH']			= datapath							
+            varDict['INPUTFOLDER']		= f'{datapath}'+'/'+ 'Input' +'/' 				
+            varDict['OUTPUTFOLDER']		= f'{datapath}'+'/'+ 'Output' +'/'			
+            
+            varDict['Parcels']              = varDict['INPUTFOLDER'] + 'Demand_parcels_fulfilment_test.csv'     
+
+            varDict['SKIMTIME'] 		= varDict['INPUTFOLDER'] + 'skimTijd_new_REF.mtx' #'skimTijd_new_REF.mtx' 		
+            varDict['SKIMDISTANCE']		= varDict['INPUTFOLDER'] + 'skimAfstand_new_REF.mtx' #'skimAfstand_new_REF.mtx'	
+            varDict['ZONES']			= varDict['INPUTFOLDER'] + 'Zones_v4.shp' #'Zones_v4.shp'				
+            varDict['SEGS']				= varDict['INPUTFOLDER'] + 'SEGS2020.csv' #'SEGS2020.csv'				
+            varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + 'parcelNodes_v2.shp'				
+            varDict['Pax_Trips']        = varDict['INPUTFOLDER'] + 'trips_Hague_Albatross.csv'	# trips.csv		            # varDict['LABEL'	]			= sys.argv[1]				
             # varDict['DATAPATH']			= datapath							
             # varDict['INPUTFOLDER']		= f'{datapath}'+ sys.argv[2] +'/' 				
             # varDict['OUTPUTFOLDER']		= f'{datapath}'+ sys.argv[3] +'/'			
@@ -84,8 +98,10 @@ def generate_args(method):
             varDict['ZONES']			= varDict['INPUTFOLDER'] + sys.argv[8] #'Zones_v4.shp'				
             varDict['SEGS']				= varDict['INPUTFOLDER'] + sys.argv[9] #'SEGS2020.csv'				
             varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + sys.argv[10] #'parcelNodes_v2.shp'				
-            varDict['Pax_Trips']        = varDict['INPUTFOLDER'] + sys.argv[11]	# trips.csv				
-            
+            varDict['Pax_Trips']        = varDict['INPUTFOLDER'] + sys.argv[11]	# trips.csv		
+            # So it shuts up the warnings (remove when running in spyder)
+            pd.options.mode.chained_assignment = None
+       
 
 
 
@@ -245,6 +261,8 @@ def generate_args(method):
     
     args = ['', varDict]
     return args, varDict
+Comienzo = dt.datetime.now()
+print ("Comienzo: ",Comienzo)    
 
 method = 'from_file' #either from_file or from_code
 args, varDict = generate_args(method)
@@ -574,7 +592,11 @@ def actually_run_module(args):
     if TESTRUN: parcels_hyperconnected = parcels_hyperconnected[:TestRunLen] #for testrun, state TESTRUN = True (end of module 0)
     
     parcels_hyperconnected['path'] = type('object')
+    
+    # i = 0
+    
     for index, parcel in parcels_hyperconnected.iterrows():
+        # i+=1
         orig = parcel['O_zone']
         dest = parcel['D_zone']
         globals() ['orig'] = orig         # Temporary solution when it's needed to run within a function
@@ -584,7 +606,7 @@ def actually_run_module(args):
 
 
 
-        if parcel['CS_eligible'] == True:
+        if parcel['CS_eligible'] == True:   # This is too slow!!!!!!!! TODO: improve
             k = 1; allowed_cs_nodes = CS_transshipment_nodes + [f'{orig}_CS', f'{dest}_CS']
         else:
             k = 1; allowed_cs_nodes = []
@@ -597,6 +619,11 @@ def actually_run_module(args):
                 weightSum += calc_score(pair[0], pair[1], G.get_edge_data(pair[0],pair[1]))
         parcels_hyperconnected.at[index,'path'] = shortest_paths[0]
         parcels_hyperconnected.at[index,'weightSum'] = weightSum
+        # print(i,"  from  ", len(parcels_hyperconnected))
+
+
+
+
     
     #%% Module 3.5 Parcel trips breakdown
     print('Parcels network breakdown...')
@@ -607,7 +634,9 @@ def actually_run_module(args):
     cols = ['Parcel_ID', 'O_zone', 'D_zone', 'CEP', 'Network', 'Type']
     parcel_trips = pd.DataFrame(columns=cols) #initiate dataframe with above stated columns
     parcel_trips = parcel_trips.astype({'Parcel_ID': int,'O_zone': int, 'D_zone': int})
+    # i=0
     for index, parcel in parcels_hyperconnected.iterrows():
+        # i+=1
         path = parcels_hyperconnected.at[index,'path']
         path = path[1:-1] #remove the first and last node from path (these are the access/egress links)
         for pair in pairwise(path):
@@ -618,7 +647,7 @@ def actually_run_module(args):
             cep = ''
             if network == 'conventional': cep = G[pair[0]][pair[1]]['CEP'] #CEP only applicable to conventional links
             parcel_trips = parcel_trips.append(pd.DataFrame([[parcel['Parcel_ID'], orig, dest, cep, network, edge_type]], columns=cols), ignore_index=True) #add trip to dataframe
-        
+        # print(i,"  from  ", len(parcels_hyperconnected))
     
     #%% Module 4.1: Parcel assignment: CROWDSHIPPING
     print("Allocate crowdshipping parcels...")
@@ -770,7 +799,7 @@ def actually_run_module(args):
     if varDict['CROWDSHIPPING_NETWORK']: 
         KPIs['crowdshipping_parcels'] = len(parcel_trips_CS)
         if KPIs['crowdshipping_parcels'] > 0:
-            KPIs['crowdshipping_parcels_matched'] = parcel_trips_CS['traveller'].notna().sum()
+            KPIs['crowdshipping_parcels_matched'] = parcel_trips_CS['trip'].notna().sum()
             KPIs['crowdshipping_match_percentage'] = round((KPIs['crowdshipping_parcels_matched']/KPIs['crowdshipping_parcels'])*100,1)
             KPIs['crowdshipping_detour_sum'] = int(parcel_trips_CS['detour'].sum())
             KPIs['crowdshipping_detour_avg'] = round(parcel_trips_CS['detour'].mean(),2)
@@ -832,7 +861,8 @@ actually_run_module(args)
 
 
 
-
+End = dt.datetime.now()
+print ("duration: ",End - Comienzo)    
 
 
 
