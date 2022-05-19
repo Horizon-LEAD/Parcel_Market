@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Oct 27 08:56:07 2021
+Created on Sun Apr 24 20:33:35 2022
 
+@author: rtapia
+"""
+"""
+Created on Wed Oct 27 08:56:07 2021
 @author: rtapia
 """
 
@@ -53,22 +57,22 @@ def generate_args(method):
     if method == 'from_file':   
             
         if sys.argv[0] == '':
-            params_file = open(f'{datapath}/Input/Params_ParcelMarket.txt')
+            params_file = open(f'{datapath}/Input/Params_ParcelMarketTRA_CS.txt')
             
             # This are the defaults, might need to change for console run!!!
-            varDict['LABEL'	]			= 'Test'				
+            varDict['LABEL'	]			= 'TRA_CS'				
             varDict['DATAPATH']			= datapath							
             varDict['INPUTFOLDER']		= f'{datapath}'+'/'+ 'Input' +'/' 				
             varDict['OUTPUTFOLDER']		= f'{datapath}'+'/'+ 'Output' +'/'			
             
-            varDict['Parcels']              = varDict['INPUTFOLDER'] + 'Demand_parcels_fulfilment_test.csv'     
+            varDict['Parcels']              = varDict['INPUTFOLDER'] + 'Demand_parcels_fulfilment_TRA_Base.csv'     
 
             varDict['SKIMTIME'] 		= varDict['INPUTFOLDER'] + 'skimTijd_new_REF.mtx' #'skimTijd_new_REF.mtx' 		
             varDict['SKIMDISTANCE']		= varDict['INPUTFOLDER'] + 'skimAfstand_new_REF.mtx' #'skimAfstand_new_REF.mtx'	
             varDict['ZONES']			= varDict['INPUTFOLDER'] + 'Zones_v4.shp' #'Zones_v4.shp'				
             varDict['SEGS']				= varDict['INPUTFOLDER'] + 'SEGS2020.csv' #'SEGS2020.csv'				
             varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + 'parcelNodes_v2.shp'				
-            varDict['Pax_Trips']        = varDict['INPUTFOLDER'] + 'trips_Hague_Albatross.csv'	# trips.csv		            # varDict['LABEL'	]			= sys.argv[1]				
+            varDict['Pax_Trips']        = varDict['INPUTFOLDER'] + 'FullTrips_Albatross.csv'	# trips.csv		            # varDict['LABEL'	]			= sys.argv[1]				
             # varDict['DATAPATH']			= datapath							
             # varDict['INPUTFOLDER']		= f'{datapath}'+ sys.argv[2] +'/' 				
             # varDict['OUTPUTFOLDER']		= f'{datapath}'+ sys.argv[3] +'/'			
@@ -99,8 +103,8 @@ def generate_args(method):
             varDict['SEGS']				= varDict['INPUTFOLDER'] + sys.argv[9] #'SEGS2020.csv'				
             varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + sys.argv[10] #'parcelNodes_v2.shp'				
             varDict['Pax_Trips']        = varDict['INPUTFOLDER'] + sys.argv[11]	# trips.csv		
-            # So it shuts up the warnings (remove when running in spyder)
-            pd.options.mode.chained_assignment = None
+           
+            pd.options.mode.chained_assignment = None # So, it shuts up the warnings (remove when running in spyder)
        
 
 
@@ -131,7 +135,7 @@ def generate_args(method):
                     elif dtype == 'variable': varDict[key] = globals()[value]
                     elif dtype == 'eval': varDict[key] = eval(value)
 
-
+        # print(varDict)
             
     elif method == 'from_code':
         print('Generating args from code')
@@ -281,8 +285,8 @@ TestRunLen = 100
 These variables will be used throughout the whole model
 '''
 
-Comienzo = dt.datetime.now()
-print ("Comienzo: ",Comienzo)
+# Comienzo = dt.datetime.now()
+# print ("Comienzo: ",Comienzo)
 
 
 
@@ -337,7 +341,6 @@ KPIs = {}
 
 '''
 Model Starts
-
 '''
 
 
@@ -411,11 +414,11 @@ def actually_run_module(args):
 
     parcels_hubspoke = parcels [parcels['Fulfilment']=='Hubspoke']
     
-    parcels_hubspoke= parcels_hubspoke.drop(['L2L',"CS_eligible","DepotNumber","Fulfilment"], axis=1) 
+    parcels_hubspoke= parcels_hubspoke.drop(['L2L',"CS_eligible","Fulfilment"], axis=1) 
     
     
     parcels_hyperconnected = parcels [parcels['Fulfilment']=='Hyperconnected']
-    parcels_hyperconnected= parcels_hyperconnected.drop(['D_DepotNumber', 'D_DepotZone', 'Fulfilment','O_DepotNumber', 'O_DepotZone'], axis=1) 
+    # parcels_hyperconnected= parcels_hyperconnected.drop(['D_DepotNumber', 'D_DepotZone', 'Fulfilment','O_DepotNumber', 'O_DepotZone'], axis=1) 
 
     
     
@@ -475,7 +478,7 @@ def actually_run_module(args):
                         'travtime': skimTravTime[invZoneDict[orig]-1,invZoneDict[dest]-1],
                         'network': 'crowdshipping',
                         'type': 'individual'}
-                    if attrs['length'] < 10000:
+                    if attrs['length'] < (varDict['CS_MaxParcelDistance']*1000):
                         G.add_edge(f"{orig}_CS", f"{dest}_CS", **attrs)
             nx.set_node_attributes(G, {f"{orig}_CS":'node'}, 'node_type')
             attrs = {'length': 0,'travtime': 0, 'network': 'crowdshipping', 'type': 'access-egress'}
@@ -595,8 +598,12 @@ def actually_run_module(args):
     
     # i = 0
     
+    
+    
     for index, parcel in parcels_hyperconnected.iterrows():
-        # i+=1
+        # count+=1
+        
+       
         orig = parcel['O_zone']
         dest = parcel['D_zone']
         globals() ['orig'] = orig         # Temporary solution when it's needed to run within a function
@@ -605,11 +612,14 @@ def actually_run_module(args):
         globals() ['parcel'] = parcel
 
 
-
-        if parcel['CS_eligible'] == True:   # This is too slow!!!!!!!! TODO: improve
+        # if parcel['CEP'] in (varDict['CrowdshippingWithCouriers']): 
+        if (parcel['CS_eligible'] == True ):   # This is too slow!!!!!!!! TODO: improve
             k = 1; allowed_cs_nodes = CS_transshipment_nodes + [f'{orig}_CS', f'{dest}_CS']
         else:
             k = 1; allowed_cs_nodes = []
+        # else:
+        #     k = 1; allowed_cs_nodes = []
+        
         globals() ['allowed_cs_nodes'] = allowed_cs_nodes
 
         shortest_paths = k_shortest_paths(G, orig, dest, k, weight = lambda u, v, d: calc_score(u, v, d=G[u][v]))
@@ -619,7 +629,7 @@ def actually_run_module(args):
                 weightSum += calc_score(pair[0], pair[1], G.get_edge_data(pair[0],pair[1]))
         parcels_hyperconnected.at[index,'path'] = shortest_paths[0]
         parcels_hyperconnected.at[index,'weightSum'] = weightSum
-        # print(i,"  from  ", len(parcels_hyperconnected))
+        # print(count,"  from  ", len(parcels_hyperconnected))
 
 
 
@@ -668,7 +678,7 @@ def actually_run_module(args):
             from LEAD_module_CS import actually_run_module #load right module
             actually_run_module(args) #run module
             parcel_trips_CS = pd.read_csv(f"{varDict['OUTPUTFOLDER']}Parcels_CS_matched_{varDict['LABEL']}.csv") #load module output to dataframe
-            
+            Trips_CS        = pd.read_csv(f"{varDict['OUTPUTFOLDER']}TripsCS_{varDict['LABEL']}.csv")
             # TODO 
             # TO DO
             # See what happens when there are no unmatched
@@ -697,19 +707,34 @@ def actually_run_module(args):
     Allocate the conventional parcels using the MASS-GT Parcel Scheduling module
     For this, the conventional parcels are splitted into delivery and pickup trips
     '''
+    # Add the hubspoke parcels that were separated at the beginning
+  
+    
+    
+    
+    
     error = 0
     parcel_trips_HS_delivery = parcel_trips.drop_duplicates(subset = ["Parcel_ID"], keep='last') #pick the final part of the parcel trip
     parcel_trips_HS_delivery = parcel_trips_HS_delivery[((parcel_trips_HS_delivery['Network'] == 'conventional') & (parcel_trips_HS_delivery['Type'] == 'tour-based'))] #only take parcels which are conventional & tour-based
     if varDict['CROWDSHIPPING_NETWORK']: parcel_trips_HS_delivery = parcel_trips_HS_delivery.append(parcel_trips_CS_unmatched_delivery, ignore_index=True,sort=False) #add unmatched CS as well
     
-    parcel_trips_HS_delivery.insert(3, 'DepotNumber', np.nan) #add depotnumer column
+    # parcel_trips_HS_delivery.insert(3, 'DepotNumber', np.nan) #add depotnumer column
     for index, parcel in parcel_trips_HS_delivery.iterrows(): #loop over parcels
         try:
             parcel_trips_HS_delivery.at[index, 'DepotNumber'] = parcelNodes[((parcelNodes['CEP'] == parcel['CEP']) & (parcelNodes['AREANR'] == parcel['O_zone']))]['id'] #add depotnumer to each parcel
+            parcel_trips_HS_delivery.at[index, 'VEHTYPE'] = 7
         except:
             parcel_trips_HS_delivery.at[index, 'DepotNumber'] = parcelNodes[((parcelNodes['CEP'] == parcel['CEP']))]['id'].iloc[0] # Get first node as an exception
             error +=1
-    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_HS_delivery_{varDict['LABEL']}.csv"
+    # parcel_trips_HS_delivery['L2L'] = True
+    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_L2L_delivery_{varDict['LABEL']}.csv"
+        # Add the parceltrips for the HubSpoke network here!! parcels_hubspoke
+    
+
+    
+    
+    
+    
     parcel_trips_HS_delivery.to_csv( out, index=False) #output these parcels to default location for scheduling
     
    
@@ -717,6 +742,10 @@ def actually_run_module(args):
     
     parcel_trips_HS_pickup = parcel_trips.drop_duplicates(subset = ["Parcel_ID"], keep='first') #pick the first part of the parcel trip
     parcel_trips_HS_pickup = parcel_trips_HS_pickup[((parcel_trips_HS_pickup['Network'] == 'conventional') & (parcel_trips_HS_pickup['Type'] == 'tour-based'))] #only take parcels which are conventional & tour-based
+
+    
+    
+    
     
     
     
@@ -760,21 +789,23 @@ def actually_run_module(args):
     for index, parcel in parcel_trips_HS_pickup.iterrows(): #loop over parcels
         try:
             parcel_trips_HS_pickup.at[index, 'DepotNumber'] = parcelNodes[((parcelNodes['CEP'] == parcel['CEP']) & (parcelNodes['AREANR'] == parcel['D_zone']))]['id'] #add depotnumer to each parcel
+            parcel_trips_HS_delivery.at[index, 'VEHTYPE'] = 7
         except:
             parcel_trips_HS_pickup.at[index, 'DepotNumber'] = parcelNodes[((parcelNodes['CEP'] == parcel['CEP']) )]['id'].iloc[0] #add depotnumer to each parcel
             error2 += 1
     
-    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_HS_pickup_{varDict['LABEL']}.csv"
+    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_L2L_pickup_{varDict['LABEL']}.csv"
     parcel_trips_HS_pickup.to_csv(out, index=False) #output these parcels to default location for scheduling
     
     
-    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_ParcelTrips_{varDict['LABEL']}.csv"
+    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_ParcelTripsL2L_{varDict['LABEL']}.csv"
     parcel_trips.to_csv(out, index=False)
     
     
+    ## Export the "untouched" hubspoke parcels
     
-    
-    
+    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_ParcelHubSpoke_{varDict['LABEL']}.csv"
+    parcels_hubspoke.to_csv(out, index=False)    
     
     
 
@@ -794,16 +825,127 @@ def actually_run_module(args):
     """
     
     
+    KPIs['Local2Local']  =int( parcels['L2L'].sum())
+    KPIs['Local2Local_Percentage']  = round(100*parcels['L2L'].sum()/ len(parcels),2)
+    
+    
+    DHL =0
+    DPD=0
+    FedEx=0
+    GLS=0
+    PostNL=0
+    UPS=0
+    
+    for index,parcel in parcel_trips_HS_pickup.iterrows(): # For some reason the pick up is closer to the actual L2L values (minus CS)
+            if parcel['CEP'] == 'DHL':
+                DHL+=1
+            elif parcel['CEP'] == "DPD":
+                DPD+=1
+            elif parcel['CEP'] == "FedEx":
+                FedEx+=1
+            elif parcel['CEP'] == "GLS":
+                GLS+=1                
+            elif parcel['CEP'] == "PostNL":
+                PostNL+=1    
+            elif parcel['CEP'] == "UPS":
+                UPS+=1                
+    
+    KPIs["L2L_DHL"]      = DHL
+    KPIs["L2L_DPD"]      =   DPD
+    KPIs["L2L_FedEx"]    =  FedEx  
+    KPIs["L2L_GLS"]      = GLS 
+    KPIs["L2L_PostNL"]   =  PostNL   
+    KPIs["L2L_UPS"]      =   UPS
+    
     
     
     if varDict['CROWDSHIPPING_NETWORK']: 
-        KPIs['crowdshipping_parcels'] = len(parcel_trips_CS)
-        if KPIs['crowdshipping_parcels'] > 0:
-            KPIs['crowdshipping_parcels_matched'] = parcel_trips_CS['trip'].notna().sum()
-            KPIs['crowdshipping_match_percentage'] = round((KPIs['crowdshipping_parcels_matched']/KPIs['crowdshipping_parcels'])*100,1)
-            KPIs['crowdshipping_detour_sum'] = int(parcel_trips_CS['detour'].sum())
-            KPIs['crowdshipping_detour_avg'] = round(parcel_trips_CS['detour'].mean(),2)
-            KPIs['crowdshipping_compensation'] = round(parcel_trips_CS['compensation'].mean(),2)
+        
+        if  len(parcel_trips_CS) > 0:
+            WalkBikekm = 0.00001 # To avoid division by 0
+            Carkm   = 0.000001
+            CarCompensation =0.0000001
+            WalkBikeCompensation =0.00001
+            CarCount =0
+            WalkBikeCount=0
+            
+            for index, parcel in parcel_trips_CS.iterrows():
+                if parcel["Mode"] in (['Car','Car as Passenger']):
+                    Carkm += parcel["detour"]
+                    CarCompensation  += parcel["compensation"]
+                    CarCount+=1
+                elif parcel["Mode"]in(["Walking or Biking"]):
+                    WalkBikekm += parcel["detour"]
+                    WalkBikeCompensation   += parcel["compensation"]
+                    WalkBikeCount  +=1
+            
+            KPIs['Crowdshipping'] = {
+                'parcels' : len(parcel_trips_CS),
+                'PoolOfTrips':len(Trips_CS),
+                'PoolOfTravellers':len(set(Trips_CS['person_id'])),
+                'parcels_matched' : int(parcel_trips_CS['trip'].notna().sum()),
+                'match_percentage': round((parcel_trips_CS['trip'].notna().sum()/len(parcel_trips_CS))*100,1),
+                'detour_sum': int(parcel_trips_CS['detour'].sum()),
+                'detour_avg': round(parcel_trips_CS['detour'].mean(),2),
+                'compensation_avg': round(parcel_trips_CS['compensation'].mean(),2),
+                'PlatformComission' : round(parcel_trips_CS['CS_comission'].sum(),2),
+                # 'PlatformComission_avg' : round(parcel_trips_CS['CS_comission'].sum()/(KPIs['Crowdshipping']["parcels_matched"] ),2),
+                'car': {
+                      'detour':round(Carkm,2),
+                      'extraTime':round(Carkm /  varDict['CarSpeed'],2),
+                      'Compensation':round(CarCompensation,2),
+                      'CompPerHour':round(CarCompensation / (round(Carkm /  varDict['CarSpeed'],2)+0.0001),2 ),
+                      'Count':int(CarCount),
+                      'Share':round ( 100*CarCount / (CarCount+WalkBikeCount),2),
+                      'detour_av':round (Carkm /(CarCount+1),2),
+                    },
+                'bikeWalk': {
+                       'detour':round(WalkBikekm,2),
+                       'extraTime':round(WalkBikekm / varDict['WalkBikeSpeed'] ,2),
+                       'Compensation':round(WalkBikeCompensation,2),
+                       'CompPerHour':round(WalkBikeCompensation / (round(WalkBikekm / varDict['WalkBikeSpeed'] ,2) +0.0001),2),
+                       'Count':int(WalkBikeCount),
+                       'Share':round(100*WalkBikeCount / (CarCount+WalkBikeCount),2),
+                       'tour_av':round(WalkBikekm /(WalkBikeCount+1),2),
+                    },
+
+                'crowdshipping_ExtraCO2':round(Carkm * varDict['CarCO2'],2 )
+                }
+
+        else:
+            KPIs['Crowdshipping'] = {
+                parcels :0
+                }
+        
+        
+        
+        # KPIs['crowdshipping_parcels'] = len(parcel_trips_CS)
+        # if KPIs['crowdshipping_parcels'] > 0:
+        #     KPIs['crowdshipping_parcels_matched'] = parcel_trips_CS['trip'].notna().sum()
+        #     KPIs['crowdshipping_match_percentage'] = round((KPIs['crowdshipping_parcels_matched']/KPIs['crowdshipping_parcels'])*100,1)
+        #     KPIs['crowdshipping_detour_sum'] = int(parcel_trips_CS['detour'].sum())
+        #     KPIs['crowdshipping_detour_avg'] = round(parcel_trips_CS['detour'].mean(),2)
+        #     KPIs['crowdshipping_compensation'] = round(parcel_trips_CS['compensation'].mean(),2)
+            
+            
+        #     WalkBikekm = 0.00001 # To avoid division by 0
+        #     Carkm   = 0.000001
+        #     CarCompensation =0.0000001
+        #     WalkBikeCompensation =0.00001
+        #     CarCount =1
+        #     WalkBikeCount=1
+            
+        #     for index, parcel in parcel_trips_CS.iterrows():
+        #         if parcel["mode"] in (['car','Car as Passenger']):
+        #             Carkm += parcel["detour"]
+        #             CarCompensation  += parcel["compensation"]
+        #             CarCount+=1
+        #         elif parcel["mode"]in(["Walking or Biking"]):
+        #             WalkBikekm += parcel["detour"]
+        #             WalkBikeCompensation   += parcel["compensation"]
+        #             WalkBikeCount  +=1
+            
+
 
     KPIfile = varDict['OUTPUTFOLDER'] + 'KPI_' + varDict['LABEL']+'.json'
     
@@ -863,7 +1005,3 @@ actually_run_module(args)
 
 End = dt.datetime.now()
 print ("duration: ",End - Comienzo)    
-
-
-
-

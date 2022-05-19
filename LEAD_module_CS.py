@@ -78,16 +78,16 @@ def getMax (matrix,cols,rows,othermatrix =np.nan, remove =1):  # If I do the fir
 def generate_Utility (UtilityFunct, variables,deterministic=1):  # TODO: How to add the variables from the columns
  
  
- for key,val in variables.items():
-         exec(key + '=val')
+     for key,val in variables.items():
+             exec(key + '=val')
+         
+     Utility = eval(UtilityFunct)
      
- Utility = eval(UtilityFunct)
- 
- if deterministic == 1:
-     Utility += np.random.gumbel()
- 
- 
- return Utility 
+     if deterministic == 1:
+         Utility += np.random.gumbel()
+     
+     
+     return Utility 
    
 
 def actually_run_module(args):
@@ -130,7 +130,7 @@ def actually_run_module(args):
         skims[skim] = skims[skim].flatten()
     skimTravTime = skims['time']; skimDist = skims['dist']
     del skims, skim, i
-    timeFac = 3600
+    timeFac = 1   # The skim time is in hours now!!!
     
     skimTime = {}
     skimTime['car'] = skimTravTime
@@ -152,8 +152,9 @@ def actually_run_module(args):
         
         # Filter out depending on SE. This can be directly done as well 
         for SE_Filter in CS_BringerFilter:
+            # print(SE_Filter)
             trips = trips.loc[trips[SE_Filter].isin(CS_BringerFilter[SE_Filter])]
-            
+            # print(len(trips))
         
         
         trips['CS_willing'] =np.random.uniform(0,1,len(trips)) < trips['unique_id'].apply(lambda x: Willinness2Bring(CS_willingness,x))       # Willingness a priori. This is the willingness to be surbscribed in the platform
@@ -171,39 +172,50 @@ def actually_run_module(args):
         #     if i < 2: tripsCS[column] = tripsCS[column] * (max(zones['X'])-min(zones['X'])) + min(zones['X'])
         #     if i > 1: tripsCS[column] = tripsCS[column] * (max(zones['Y'])-min(zones['Y'])) + min(zones['Y'])
         
+
+        
+        
+        
+        
         coordinates = [((zones.loc[zone, 'X'], zones.loc[zone, 'Y'])) for zone in zones.index]
         tree = spatial.KDTree(coordinates)
         
         tripsCS['O_zone'], tripsCS['D_zone'], tripsCS['travtime'], tripsCS['travdist'], tripsCS['municipality_orig'], tripsCS['municipality_dest'] , tripsCS['BaseUtility']= np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan
         trips_array = np.array(tripsCS)
+        # for i,value in enumerate(tripsCS.columns):  # Sirve para saber los numeros para abaj0
+        #     print(i,value)
+        
         for traveller in trips_array:
-            mode = traveller[9]
-            traveller[17] = int(zoneDict[tree.query([(traveller[3], traveller[4])])[1][0]+1]) #orig
-            traveller[18] = int(zoneDict[tree.query([(traveller[5], traveller[6])])[1][0]+1]) #dest
-            traveller[20] = get_distance(invZoneDict[traveller[17]], invZoneDict[traveller[18]], skimDist, nSkimZones)
-            if mode == 'car':
-                traveller[19] = get_traveltime(invZoneDict[traveller[17]], invZoneDict[traveller[18]], skimTime[mode], nSkimZones, timeFac)
-                cost          = traveller[20] * eval(varDict ['Car_CostKM'])
-                traveller[23] = generate_Utility (CS_BringerUtility,{'Cost': cost,'Time':traveller[19]})
+            mode = traveller[21]
+            traveller[22] = int(zoneDict[tree.query([(traveller[17], traveller[18])])[1][0]+1]) #orig
+            traveller[23] = int(zoneDict[tree.query([(traveller[19], traveller[20])])[1][0]+1]) #dest
+            traveller[25] = get_distance(invZoneDict[traveller[22]], invZoneDict[traveller[23]], skimDist, nSkimZones) # in km!
+            if mode == 'Car':
+                traveller[24] = get_traveltime(invZoneDict[traveller[22]], invZoneDict[traveller[23]], skimTime['car'], nSkimZones, timeFac) # in hours
+                traveller[24] = traveller[24] * 60 # in minutes now!
 
-            elif mode == 'carPassenger':
-                traveller[19] = get_traveltime(invZoneDict[traveller[17]], invZoneDict[traveller[18]], skimTime[mode], nSkimZones, timeFac)
-                cost   = traveller[20] * eval(varDict ['Car_CostKM'])
-                traveller[23] = generate_Utility (CS_BringerUtility,{'Cost': cost,'Time':traveller[19]})
+                cost          = traveller[25] * eval(varDict ['Car_CostKM'])
+                traveller[28] = generate_Utility (CS_BringerUtility,{'Cost': cost,'Time':traveller[24]})
 
-            elif mode == 'bike':
-                traveller[19] = traveller[20] / 1  # CHANGE FOR CORRECT BIKE SPEED (AND CORRECT UNITS)
+            elif mode == 'Car as Passenger':
+                traveller[24] = get_traveltime(invZoneDict[traveller[22]], invZoneDict[traveller[23]], skimTime['car_passenger'], nSkimZones, timeFac) # in hours
+                traveller[24] = traveller[24] * 60 # in minutes now!
+                cost   = traveller[25] * eval(varDict ['Car_CostKM'])
+                traveller[28] = generate_Utility (CS_BringerUtility,{'Cost': cost,'Time':traveller[24]})
+
+            elif mode == 'Walking or Biking':
+                traveller[24] = 60 * traveller[25] / varDict['WalkBikeSpeed']  # CHANGE FOR CORRECT BIKE SPEED (AND CORRECT UNITS)
                 cost = 0
-                traveller[23] = generate_Utility (CS_BringerUtility,{'Cost': cost,'Time':traveller[19]})
+                traveller[28] = generate_Utility (CS_BringerUtility,{'Cost': cost,'Time':traveller[24]})
             elif mode == 'walk':
-                traveller[19] = traveller[20] / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)
+                traveller[24] =  60 *traveller[25] / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)
                 cost  = 0
-                traveller[23] = generate_Utility (CS_BringerUtility,{'Cost': cost,'Time':traveller[19]})
+                traveller[28] = generate_Utility (CS_BringerUtility,{'Cost': cost,'Time':traveller[24]})
 
             else: 
                 traveller[19] = np.nan
-            traveller[21] = zones.loc[traveller[17], 'GEMEENTEN']
-            traveller[22] = zones.loc[traveller[18], 'GEMEENTEN']
+            traveller[26] = zones.loc[traveller[22], 'GEMEENTEN']
+            traveller[27] = zones.loc[traveller[23], 'GEMEENTEN']
         
         
         tripsCS = pd.DataFrame(trips_array, columns=tripsCS.columns)
@@ -213,6 +225,7 @@ def actually_run_module(args):
 
     trips = pd.read_csv(Pax_Trips, sep = ',', )
     global tripsCS
+    print("generating bringer supply")
     tripsCS = generate_CS_supply(trips, CS_willingness,CS_BringerFilter)
     tripsCS['shipping'] = np.nan
     # print('test')
@@ -240,11 +253,9 @@ def actually_run_module(args):
     
     
     #%% Matching of parcels and travellers
-    def get_compensation(dist_parcel_trip): # This could potentially have more vars!
-        #compensation = math.log( (dist_parcel_trip) + 2)
-        compensation = eval(varDict['CS_COMPENSATION'])
-        return compensation
-    
+
+
+    print("Matching parcels with bringers")
     if varDict['CS_ALLOCATION'] == 'demand':  # This is the old approach
         
         for index, parcel in parcels.iterrows():
@@ -265,7 +276,7 @@ def actually_run_module(args):
                 VoT = eval (varDict['VOT'])  # In case I will do the VoT function of the traveller sociodems/purpose, etc
                 trav_orig = traveller['O_zone']
                 trav_dest = traveller['D_zone']
-                mode = traveller['mode']
+                mode = traveller['Mode']
                 trip_time = traveller['travtime']
                 trip_dist = traveller['travdist']
                 if mode in ['car']: CS_pickup_time = droptime_car
@@ -310,6 +321,7 @@ def actually_run_module(args):
         # Detours   = np.zeros((len(tripsCS),len(parcels))) 
         
         # comp = []
+        print("Starting Utility evaluation")
         for index, parcel in parcels.iterrows():
             parc_orig = parcel['O_zone']
             parc_dest = parcel['D_zone']
@@ -329,19 +341,25 @@ def actually_run_module(args):
                                         (parc_dest_muni == tripsCS['municipality_orig']) | (parc_dest_muni == tripsCS['municipality_dest'])))]
             
             if parcel['CS_deliveryChoice']:
+                
                 for i, traveller in filtered_trips.iterrows():
                     # print(traveller['PossibleParcels'] )
-                    VoT = eval (varDict['VOT'])  # In case I will do the VoT function of the traveller sociodems/purpose, etc
+                    # VoT = eval (varDict['VOT'])  # In case I will do the VoT function of the traveller sociodems/purpose, etc
                     trav_orig = traveller['O_zone']
                     trav_dest = traveller['D_zone']
-                    mode = traveller['mode']
+                    mode = traveller['Mode']
                     trip_time = traveller['travtime']
                     trip_dist = traveller['travdist']
-                    if mode in ['car']: 
+                    if mode in ['Car']: 
                         CS_pickup_time = droptime_car
-                        time_traveller_parcel   = get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones, timeFac) # These are car/can TTs!!
-                        time_parcel_trip        = get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime[mode], nSkimZones, timeFac) # These are car/can TTs!!
-                        time_customer_end       = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime[mode], nSkimZones, timeFac) # These are car/can TTs!!
+                        time_traveller_parcel   = get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
+                        time_parcel_trip        = get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
+                        time_customer_end       = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
+                        time_traveller_parcel   = 60 * time_traveller_parcel # Result in minutes (if timefact = 1)
+                        time_parcel_trip        = 60 * time_parcel_trip   # Result in minutes (if timefact = 1)
+                        time_customer_end       = 60 * time_customer_end # Result in minutes (if timefact = 1)
+                        
+                        
                         # dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones) # These are car/can TTs!!
                         # dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime[mode], nSkimZones) # These are car/can TTs!!
                         # dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime[mode], nSkimZones) # These are car/can TTs!!
@@ -349,17 +367,17 @@ def actually_run_module(args):
                         dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
                         CS_TravelCost           = eval(varDict ['Car_CostKM'])
-                    if mode in ['bike', 'car_passenger']: CS_pickup_time = droptime_bike
-                    if mode in ['bike']:
+                    if mode in ['Walking or Biking', 'Car as Passenger']: CS_pickup_time = droptime_bike
+                    if mode in ['Walking or Biking']:
                         # dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones) # These are car/can TTs!!
                         # dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime[mode], nSkimZones) # These are car/can TTs!!
                         # dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime[mode], nSkimZones) # These are car/can TTs!!
                         dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
-                        time_traveller_parcel   = dist_traveller_parcel  / 1  # CHANGE FOR CORRECT BIKE SPEED (AND CORRECT UNITS)
-                        time_parcel_trip        = dist_parcel_trip       / 1  # CHANGE FOR CORRECT BIKE SPEED (AND CORRECT UNITS)
-                        time_customer_end       = dist_customer_end     / 1  # CHANGE FOR CORRECT BIKE SPEED (AND CORRECT UNITS)
+                        time_traveller_parcel   = 60 * dist_traveller_parcel  /  varDict['WalkBikeSpeed']  # Result in minutes (if timefact = 1)
+                        time_parcel_trip        = 60 * dist_parcel_trip       /  varDict['WalkBikeSpeed'] # Result in minutes (if timefact = 1)
+                        time_customer_end       = 60 * dist_customer_end     / varDict['WalkBikeSpeed'] # Result in minutes (if timefact = 1)
                         CS_TravelCost           = 0
                     if mode in ['walk', 'pt']: CS_pickup_time = droptime_pt
                     if mode in ['walk']:
@@ -369,24 +387,24 @@ def actually_run_module(args):
                         dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
-                        time_traveller_parcel   = dist_traveller_parcel  / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)
-                        time_parcel_trip        = dist_parcel_trip       / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)
-                        time_customer_end       = dist_customer_end     / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)                
+                        time_traveller_parcel   =  60 *dist_traveller_parcel  / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)
+                        time_parcel_trip        =  60 *dist_parcel_trip       / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)
+                        time_customer_end       =  60 *dist_customer_end     / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)                
                         CS_TravelCost           = 0                
                     
                     
                     
                     CS_trip_dist = (dist_traveller_parcel + dist_parcel_trip + dist_customer_end)
                     CS_trip_time = (time_traveller_parcel + time_parcel_trip + time_customer_end)
-                    CS_detour_time = CS_trip_time - trip_time
+                    CS_detour_time = CS_trip_time + 2 * CS_pickup_time - trip_time
                     CS_detour_dist = CS_trip_dist - trip_dist
                     
                     NetCompensation = compensation - CS_detour_dist * CS_TravelCost # Is this better approx? Do people compare just the compensation with the time or the pocket compensation??
                                 
-                    if ((CS_detour_time + CS_pickup_time * 2)/3600) == 0: CS_detour_time += 1 #prevents /0 eror
+                    if ((CS_detour_time + CS_pickup_time * 2)) == 0: CS_detour_time += 1 #prevents /0 eror
                     compensation_time =  NetCompensation / ((CS_detour_time + CS_pickup_time * 2)/3600)
                     
-                    Util_PickUp = generate_Utility (CS_BringerUtility,{'Cost': NetCompensation,'Time':CS_trip_time}) +80# This is a provisional number so there aren't that many parcels that are eligible until we find the correct equation
+                    Util_PickUp = generate_Utility (CS_BringerUtility,{'Cost': NetCompensation,'Time':CS_trip_time}) #+80# This is a provisional number so there aren't that many parcels that are eligible until we find the correct equation
                     Surplus   = Util_PickUp-traveller['BaseUtility']
                     Detour    = CS_trip_dist - traveller['travdist']
                     # print(Surplus)
@@ -396,7 +414,7 @@ def actually_run_module(args):
                         Surpluses[i,index] = Surplus
                         Detours  [i,index] = Detour
                     
-            print("parcel ", index, " from ", len(parcels))
+            # print("parcel ", index, " from ", len(parcels))
 
 
 
@@ -414,7 +432,7 @@ def actually_run_module(args):
     matrix = Surplus
     rows = lableTrav
     cols = lableParcels
-
+    print("Starting matching")
     # print('get max')
     while value != 0:
         position,value,Surplus,Detours,detour,lableParcels,lableTrav = getMax (Surplus,lableParcels,lableTrav,Detours,remove = 1)
@@ -426,12 +444,20 @@ def actually_run_module(args):
     matches_trips = matches
     matches_parcels =  {v: k for k, v in matches.items()}
     
+    
+    
+    
     parcels['trip'] = parcels['Parcel_ID'].map(matches_parcels)
     parcels['detour'] = parcels['trip'].map(distances)
     # parcels['compensation'] = comp
         
+    tripsMode = trips[["unique_id","Mode"]]
+    #Get the mode and add it to the parcel
 
     
+    parcels =  pd.merge(parcels,tripsMode,left_on='trip', right_on='unique_id')
+    
+    parcels['traveller'] = parcels['trip'].apply(lambda x: x[0:-2])
     #### THE CROWDSHIPPING TRIP DATAFRAME HAS NOT BEEN UPDATED WITH THE NEW TRIPS!!!!!!
 
     # person, trip = traveller.split('_')
@@ -439,7 +465,7 @@ def actually_run_module(args):
     # # print(traveller)
     # tripsCS.loc[((tripsCS['person_id'] == person) & (tripsCS['person_trip_id'] == trip)), 'shipping'] = parcels.loc[index, 'Parcel_ID'] # Are we saving the trips CS?
 
-        
+    
         
     
 
@@ -448,7 +474,8 @@ def actually_run_module(args):
 
 
     parcels.to_csv(f"{varDict['OUTPUTFOLDER']}Parcels_CS_matched_{varDict['LABEL']}.csv", index=False)
-    
+    tripsCS.to_csv(f"{varDict['OUTPUTFOLDER']}TripsCS_{varDict['LABEL']}.csv", index=False)
+    print("Crowdshipping allocation done")
 #%% Run module on itself
 if __name__ == '__main__':
     cwd = os.getcwd()
