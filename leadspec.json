@@ -1,0 +1,12 @@
+{
+    "name": "Parcel Market",
+    "description":"The Parcel Market model [...].",
+    "version": "0.1.0",
+    "status":"draft",
+    "types": [
+        {"name": "Network Model", "description":"Network models deal with routing and allocation to road networks."}
+    ],
+    "dockerImage":"registry.gitlab.com/inlecom/lead/models/parcel-market:latest",
+    "url": "https://github.com/Horizon-LEAD/parcel-market",
+    "modelData":  []
+}
