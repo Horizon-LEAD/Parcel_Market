@@ -49,7 +49,6 @@ def generate_args(method):
     datapath = cwd.replace('Code', '')
 
     if method == 'from_file':
-
         if sys.argv[0] == '':
             params_file = open(f'{datapath}/Input/Params_ParcelMarketTRA_CS.txt')
 
@@ -78,32 +77,31 @@ def generate_args(method):
             # varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + 'parcelNodes_v2.shp'
             # varDict['Pax_Trips']        = varDict['INPUTFOLDER'] +'trips.csv'
 
-
-
-
         else:  # This is the part for line cod execution
-            locationparam = f'{datapath}'+'/' + sys.argv[2] +'/' + sys.argv[4]
+            varDict['LABEL'	] = sys.argv[1]
+            varDict['DATAPATH'] = datapath
+            varDict['INPUTFOLDER'] = sys.argv[2]
+            varDict['OUTPUTFOLDER'] = sys.argv[3]
+
+            locationparam = os.path.join(sys.argv[2], sys.argv[4])
             params_file = open(locationparam)
-            varDict['LABEL'	]			= sys.argv[1]
-            varDict['DATAPATH']			= datapath
-            varDict['INPUTFOLDER']		= f'{datapath}'+'/'+ sys.argv[2] +'/'
-            varDict['OUTPUTFOLDER']		= f'{datapath}'+'/'+ sys.argv[3] +'/'
 
-            varDict['Parcels']              = varDict['INPUTFOLDER'] + sys.argv[5]
+            varDict['Parcels'] = os.path.join(varDict['INPUTFOLDER'], sys.argv[5])
+            #'skimTijd_new_REF.mtx'
+            varDict['SKIMTIME'] = os.path.join(varDict['INPUTFOLDER'], sys.argv[6])
+            #'skimAfstand_new_REF.mtx'
+            varDict['SKIMDISTANCE'] = os.path.join(varDict['INPUTFOLDER'], sys.argv[7])
+            #'Zones_v4.shp'
+            varDict['ZONES'] = os.path.join(varDict['INPUTFOLDER'], sys.argv[8])
+            #'SEGS2020.csv'
+            varDict['SEGS'] = os.path.join(varDict['INPUTFOLDER'], sys.argv[9])
+            #'parcelNodes_v2.shp'
+            varDict['PARCELNODES'] = os.path.join(varDict['INPUTFOLDER'], sys.argv[10])
+            # trips.csv
+            varDict['Pax_Trips'] = os.path.join(varDict['INPUTFOLDER'], sys.argv[11])
 
-            varDict['SKIMTIME'] 		= varDict['INPUTFOLDER'] + sys.argv[6] #'skimTijd_new_REF.mtx'
-            varDict['SKIMDISTANCE']		= varDict['INPUTFOLDER'] + sys.argv[7] #'skimAfstand_new_REF.mtx'
-            varDict['ZONES']			= varDict['INPUTFOLDER'] + sys.argv[8] #'Zones_v4.shp'
-            varDict['SEGS']				= varDict['INPUTFOLDER'] + sys.argv[9] #'SEGS2020.csv'
-            varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + sys.argv[10] #'parcelNodes_v2.shp'
-            varDict['Pax_Trips']        = varDict['INPUTFOLDER'] + sys.argv[11]	# trips.csv
-
-            pd.options.mode.chained_assignment = None # So, it shuts up the warnings (remove when running in spyder)
-
-
-
-
-
+            # So, it shuts up the warnings (remove when running in spyder)
+            pd.options.mode.chained_assignment = None
 
         for line in params_file:
             if len(line.split('=')) > 1:
@@ -259,6 +257,8 @@ def generate_args(method):
 
     args = ['', varDict]
     return args, varDict
+
+
 Comienzo = dt.datetime.now()
 print ("Comienzo: ",Comienzo)
 
@@ -311,7 +311,7 @@ segs.index = segs['zone']
 segs = segs[segs['zone'].isin(zones['AREANR'])] #Take only segs into account for which zonal data is known as well
 
 parcelNodesPath = varDict['PARCELNODES']
-parcelNodes = read_shape(parcelNodesPath, returnGeometry=False)
+parcelNodes = read_shape(parcelNodesPath, return_geometry=False)
 parcelNodes.index   = parcelNodes['id'].astype(int)
 parcelNodes         = parcelNodes.sort_index()
 

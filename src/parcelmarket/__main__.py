@@ -1,7 +1,5 @@
 """
-parcelgen
-
-Generates parcels
+parcelmarket
 """
 
 import logging

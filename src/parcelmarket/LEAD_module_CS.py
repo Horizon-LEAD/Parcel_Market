@@ -13,7 +13,10 @@ from scipy import spatial
 from .utils import read_mtx, read_shape, get_traveltime, get_distance
 
 #OLD!!!
-# def getMax (matrix,cols,rows,remove =1):  # If I do the first line and column as the trip ID or parcel ID, then I can remove the lines! If not, add a key that you remove as well when you remvoe the line!
+# If I do the first line and column as the trip ID or parcel ID,
+# then I can remove the lines! If not, add a key that you remove
+# as well when you remvoe the line!
+# def getMax (matrix,cols,rows,remove =1):
 #     # Remove = 1 is that removes the line --> each person takes only 1 parcel per trip!!
 #     maximum = np.amax(matrix)
 #     position = np.where(matrix == maximum)
