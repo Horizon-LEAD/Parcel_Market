@@ -9,6 +9,9 @@ python3 Parcel_Market.py Test Input Output Params_ParcelMarket.txt Demand_parcel
 
 c='/mnt/c/Users/rtapia/OneDrive - Delft University of Technology/Transporte/Proyectos/LEAD project TUDelft/Work Packages/MassGT LEAD/Model Library Vers'
 cd "$c"
+
+###
+python -m src.parcelmarket.Parcel_Market TEST <input-path> <output-path> Params_ParcelMarket.txt Demand_parcels_fulfilment_TRA_Base.csv skimTijd_new_REF.mtx skimAfstand_new_REF.mtx Zones_v4.shp SEGS2020.csv parcelNodes_v2.shp trips_Hague_Albatross.csv
 ```
 
 ## Installation
