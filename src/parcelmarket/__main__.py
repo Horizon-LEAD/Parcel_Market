@@ -83,7 +83,7 @@ def main():
     parser.add_argument('SEGS', type=strfile, help='The path of the socioeconomics data file (csv)')
     parser.add_argument('PARCELNODES', type=strfile,
                         help='The path of the parcel nodes file (shp)')
-    parser.add_argument('TRIPS', type=strfile,
+    parser.add_argument('Pax_Trips', type=strfile,
                         help='The path of the trips file (csv)')
     parser.add_argument('OUTDIR', type=strdir, help='The output directory')
 
