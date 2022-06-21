@@ -12,8 +12,8 @@ from argparse import (ArgumentParser, RawTextHelpFormatter,
 
 from dotenv import dotenv_values
 
-from .utils import parse_env_values
-from .proc import run_model
+from .envctl import parse_env_values
+from .proc_mineff import actually_run_module
 
 
 LOG_FILE_MAX_BYTES = 50e6
@@ -21,7 +21,7 @@ LOG_MSG_FMT = "%(asctime)s %(levelname)-8s %(name)s \
 %(filename)s#L%(lineno)d %(message)s"
 LOG_DT_FMT = "%Y-%m-%d %H:%M:%S"
 
-logger = logging.getLogger("parcelgen")
+logger = logging.getLogger("parcelmarket")
 
 
 class RawDefaultsHelpFormatter(ArgumentDefaultsHelpFormatter, RawTextHelpFormatter):
@@ -74,7 +74,7 @@ def main():
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDefaultsHelpFormatter)
 
-    parser.add_argument('DEMAND_PARCEL_FLFLMNT', type=strfile,
+    parser.add_argument('Parcels', type=strfile,
                         help='The path of the demand parcel fulfilment file (csv)')
     parser.add_argument('SKIMTIME', type=strfile, help='The path of the time skim matrix (mtx)')
     parser.add_argument('SKIMDISTANCE', type=strfile,
@@ -133,7 +133,7 @@ def main():
     for key, value in config.items():
         print(f'{key:<30s}: {value}')
 
-    run_model(config)
+    actually_run_module(config)
 
 
 if __name__ == "__main__":
