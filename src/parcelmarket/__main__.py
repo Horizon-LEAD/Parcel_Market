@@ -85,7 +85,7 @@ def main():
                         help='The path of the parcel nodes file (shp)')
     parser.add_argument('Pax_Trips', type=strfile,
                         help='The path of the trips file (csv)')
-    parser.add_argument('OUTDIR', type=strdir, help='The output directory')
+    parser.add_argument('OUTPUTFOLDER', type=strdir, help='The output directory')
 
     parser.add_argument('-v', '--verbosity', action='count', default=0,
                         help='Increase output verbosity')

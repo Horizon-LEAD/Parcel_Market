@@ -372,13 +372,13 @@ def actually_run_module(varDict):
         parcel_trips_CS = parcel_trips[parcel_trips['Network'] == 'crowdshipping'] #select only trips using crowdshipping
         parcel_trips_CS_unmatched_pickup, parcel_trips_CS_unmatched_delivery = pd.DataFrame(), pd.DataFrame()
         if not parcel_trips_CS.empty:
-            out = f"{varDict['OUTPUTFOLDER']}Parcels_CS_{varDict['LABEL']}.csv"
+            out = os.path.join(varDict['OUTPUTFOLDER'], "Parcels_CS.csv")
             parcel_trips_CS.to_csv(out, index=False) # write those trips to csv (default location of parcel demand for scheduling module)
 
             from LEAD_module_CS import actually_run_module #load right module
             actually_run_module(args) #run module
-            parcel_trips_CS = pd.read_csv(f"{varDict['OUTPUTFOLDER']}Parcels_CS_matched_{varDict['LABEL']}.csv") #load module output to dataframe
-            Trips_CS        = pd.read_csv(f"{varDict['OUTPUTFOLDER']}TripsCS_{varDict['LABEL']}.csv")
+            parcel_trips_CS = pd.read_csv(os.path.join(varDict['OUTPUTFOLDER'], "Parcels_CS_matched.csv")) #load module output to dataframe
+            Trips_CS        = pd.read_csv(os.path.join(varDict['OUTPUTFOLDER'], "TripsCS.csv"))
             # TODO
             # TO DO
             # See what happens when there are no unmatched
@@ -423,7 +423,7 @@ def actually_run_module(varDict):
             parcel_trips_HS_delivery.at[index, 'DepotNumber'] = parcelNodes[((parcelNodes['CEP'] == parcel['CEP']))]['id'].iloc[0] # Get first node as an exception
             error +=1
     # parcel_trips_HS_delivery['L2L'] = True
-    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_L2L_delivery_{varDict['LABEL']}.csv"
+    out = os.path.join(varDict['OUTPUTFOLDER'], "ParcelDemand_L2L_delivery.csv")
         # Add the parceltrips for the HubSpoke network here!! parcels_hubspoke
 
     parcel_trips_HS_delivery.to_csv( out, index=False) #output these parcels to default location for scheduling
@@ -469,16 +469,16 @@ def actually_run_module(varDict):
             parcel_trips_HS_pickup.at[index, 'DepotNumber'] = parcelNodes[((parcelNodes['CEP'] == parcel['CEP']) )]['id'].iloc[0] #add depotnumer to each parcel
             error2 += 1
 
-    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_L2L_pickup_{varDict['LABEL']}.csv"
+    out = os.path.join(varDict['OUTPUTFOLDER'], "ParcelDemand_L2L_pickup.csv")
     parcel_trips_HS_pickup.to_csv(out, index=False) #output these parcels to default location for scheduling
 
 
-    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_ParcelTripsL2L_{varDict['LABEL']}.csv"
+    out = os.path.join(varDict['OUTPUTFOLDER'], "ParcelDemand_ParcelTripsL2L.csv")
     parcel_trips.to_csv(out, index=False)
 
     ## Export the "untouched" hubspoke parcels
 
-    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_ParcelHubSpoke_{varDict['LABEL']}.csv"
+    out = os.path.join(varDict['OUTPUTFOLDER'], "ParcelDemand_ParcelHubSpoke.csv")
     parcels_hubspoke.to_csv(out, index=False)
 
     """
@@ -605,9 +605,7 @@ def actually_run_module(varDict):
         #             WalkBikeCompensation   += parcel["compensation"]
         #             WalkBikeCount  +=1
 
-
-
-    KPIfile = varDict['OUTPUTFOLDER'] + 'KPI_' + varDict['LABEL']+'.json'
+    KPIfile = os.path.join(varDict['OUTPUTFOLDER'], 'KPIs.json')
 
     # Write KPIs as Json
 
