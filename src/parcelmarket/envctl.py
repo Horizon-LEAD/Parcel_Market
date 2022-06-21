@@ -14,7 +14,7 @@ PARAMS_BOOL = ["CROWDSHIPPING_NETWORK", "COMBINE_DELIVERY_PICKUP_TOUR",
                "HYPERCONNECTED_NETWORK", "printKPI", "TESTRUN"]
 PARAMS_NUM = ["CONSOLIDATED_MAXLOAD", "CS_MaxParcelDistance",
               "PARCELS_DROPTIME_CAR", "PARCELS_DROPTIME_BIKE", "PARCELS_DROPTIME_PT",
-              "PlatformComission", "CS_Costs", "TradCost",
+              "PlatformComission", "CS_Costs", "TradCost", "CS_COMPENSATION",
               "CarSpeed", "WalkBikeSpeed", "CarCO2", "Car_CostKM", "VOT"]
 PARAMS_STR = ["CS_BringerScore", "CS_ALLOCATION"]
 PARAMS_LIST_STR = ["hub_zones", "parcelLockers_zones", "Gemeenten_studyarea", "Gemeenten_CS",

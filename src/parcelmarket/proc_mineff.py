@@ -375,8 +375,8 @@ def actually_run_module(varDict):
             out = os.path.join(varDict['OUTPUTFOLDER'], "Parcels_CS.csv")
             parcel_trips_CS.to_csv(out, index=False) # write those trips to csv (default location of parcel demand for scheduling module)
 
-            from LEAD_module_CS import actually_run_module #load right module
-            actually_run_module(args) #run module
+            from .proc_cs_mineff import run_module_cs #load right module
+            run_module_cs(varDict) #run module
             parcel_trips_CS = pd.read_csv(os.path.join(varDict['OUTPUTFOLDER'], "Parcels_CS_matched.csv")) #load module output to dataframe
             Trips_CS        = pd.read_csv(os.path.join(varDict['OUTPUTFOLDER'], "TripsCS.csv"))
             # TODO

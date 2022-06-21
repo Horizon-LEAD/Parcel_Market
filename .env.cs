@@ -1,7 +1,7 @@
 LABEL=default
 
 # bool vars
-CROWDSHIPPING_NETWORK=False
+CROWDSHIPPING_NETWORK=True
 COMBINE_DELIVERY_PICKUP_TOUR=True
 HYPERCONNECTED_NETWORK=False
 TESTRUN=False
@@ -21,20 +21,21 @@ SCORE_COSTS="2,0.2,0.2,0,0" # list # tour_based, consolidated, hub, cs_trans,int
 
 # JSON
 HyperConect={"DHL": [] , "DPD": ["FedEx", "GLS",  "UPS"] , "FedEx": ["DPD",  "GLS",  "UPS"] ,  "GLS": ["DPD", "FedEx",  "UPS"] ,"PostNL": [] ,  "UPS": ["DPD", "FedEx", "GLS"]}     # list (?)
-CS_BringerFilter={"age": ["<35","35-55"], "hh_income": ["low","average"], "following_purpose": ["home", "business", "leisure", "other", "groceries", "services", "social", "bringget", "nongroc", "touring"], "mode": ["car"]}  # list (?)
+# CS_BringerFilter={"age": ["<35","35-55"], "hh_income": ["low","average"], "following_purpose": ["home", "business", "leisure", "other", "groceries", "services", "social", "bringget", "nongroc", "touring"], "mode": ["car"]}  # list (?)
+CS_BringerFilter={"age": ["<35","35-55"], "hh_income": ["minimum","low"], "following_purpose": ["Home", "Business", "Leisure", "Other", "Groceries", "Services", "Social", "BrinGet", "NonGroc", "Touring"], "mode": ["Car", "Walking or Biking"]}  # list (?)
 
 # numbers
 CONSOLIDATED_MAXLOAD=500    # int
 CS_MaxParcelDistance=10     # float # Max distance allowed between parcel Origing and Destination for CS
-PARCELS_DROPTIME_CAR=120    # int
-PARCELS_DROPTIME_BIKE=60    # int #and car passenger
+PARCELS_DROPTIME_CAR=5      # int
+PARCELS_DROPTIME_BIKE=2     # int #and car passenger
 PARCELS_DROPTIME_PT=0       # int #and walk
 PlatformComission=0.15      # float # Comission by the platform
 CS_Costs=0.00               # float # Other costs of CS (e.g. insurance)
-TradCost=9.00               # float # Cost of a regular parcel (Same day delivery)
+TradCost=9.20               # float # Cost of a regular parcel (Same day delivery)
 CarSpeed=30.00              # float
-WalkBikeSpeed=9.00          # float
-CarCO2=1.00                 # float # grams/km
+WalkBikeSpeed=12.00         # float
+CarCO2=160                  # float # grams/km
 
 Car_CostKM=0.19             # string -> should be changed to float and remove eval from code
 VOT=9.00                    # string -> should be changed to float and remove eval from code
