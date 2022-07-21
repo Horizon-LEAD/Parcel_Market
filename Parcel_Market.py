@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Apr 24 20:33:35 2022
-
-@author: rtapia
-"""
-"""
 Created on Wed Oct 27 08:56:07 2021
+
 @author: rtapia
 """
 
@@ -57,22 +53,21 @@ def generate_args(method):
     if method == 'from_file':   
             
         if sys.argv[0] == '':
-            params_file = open(f'{datapath}/Input/Params_ParcelMarketTRA_CS_A_7.txt')
+            params_file = open(f'{datapath}/Input/Params_ParcelMarket1.txt')
             
             # This are the defaults, might need to change for console run!!!
-            varDict['LABEL'	]			= 'TRA_CS_sensBase'				
+            varDict['LABEL'	]			= 'Test'				
             varDict['DATAPATH']			= datapath							
             varDict['INPUTFOLDER']		= f'{datapath}'+'/'+ 'Input' +'/' 				
             varDict['OUTPUTFOLDER']		= f'{datapath}'+'/'+ 'Output' +'/'			
             
-            varDict['Parcels']              = varDict['INPUTFOLDER'] + 'Demand_parcels_fulfilment_TRA_Base.csv'     
-
+            varDict['Parcels']              = varDict['INPUTFOLDER'] + 'Demand_parcels_fulfilment_Wksp.csv'
             varDict['SKIMTIME'] 		= varDict['INPUTFOLDER'] + 'skimTijd_new_REF.mtx' #'skimTijd_new_REF.mtx' 		
             varDict['SKIMDISTANCE']		= varDict['INPUTFOLDER'] + 'skimAfstand_new_REF.mtx' #'skimAfstand_new_REF.mtx'	
             varDict['ZONES']			= varDict['INPUTFOLDER'] + 'Zones_v4.shp' #'Zones_v4.shp'				
             varDict['SEGS']				= varDict['INPUTFOLDER'] + 'SEGS2020.csv' #'SEGS2020.csv'				
-            varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + 'parcelNodes_v2.shp'				
-            varDict['Pax_Trips']        = varDict['INPUTFOLDER'] + 'FullTrips_Albatross.csv'	# trips.csv		            # varDict['LABEL'	]			= sys.argv[1]				
+            varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + 'parcelNodes_v2Cycloon.shp'				
+            varDict['Pax_Trips']        = varDict['INPUTFOLDER'] + 'trips_Hague_Albatross.csv'	# trips.csv		            # varDict['LABEL'	]			= sys.argv[1]				
             # varDict['DATAPATH']			= datapath							
             # varDict['INPUTFOLDER']		= f'{datapath}'+ sys.argv[2] +'/' 				
             # varDict['OUTPUTFOLDER']		= f'{datapath}'+ sys.argv[3] +'/'			
@@ -81,7 +76,7 @@ def generate_args(method):
             # varDict['SKIMDISTANCE']		= varDict['INPUTFOLDER'] + 'skimAfstand_new_REF.mtx'	
             # varDict['ZONES']			= varDict['INPUTFOLDER'] + 'Zones_v4.shp'				
             # varDict['SEGS']				= varDict['INPUTFOLDER'] + 'SEGS2020.csv'				
-            # varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + 'parcelNodes_v2.shp'				
+            # varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + 'parcelNodes_v2Cycloon.shp'				
             # varDict['Pax_Trips']        = varDict['INPUTFOLDER'] +'trips.csv'       
             
             
@@ -101,10 +96,10 @@ def generate_args(method):
             varDict['SKIMDISTANCE']		= varDict['INPUTFOLDER'] + sys.argv[7] #'skimAfstand_new_REF.mtx'	
             varDict['ZONES']			= varDict['INPUTFOLDER'] + sys.argv[8] #'Zones_v4.shp'				
             varDict['SEGS']				= varDict['INPUTFOLDER'] + sys.argv[9] #'SEGS2020.csv'				
-            varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + sys.argv[10] #'parcelNodes_v2.shp'				
+            varDict['PARCELNODES']		= varDict['INPUTFOLDER'] + sys.argv[10] #'parcelNodes_v2Cycloon.shp'				
             varDict['Pax_Trips']        = varDict['INPUTFOLDER'] + sys.argv[11]	# trips.csv		
-           
-            pd.options.mode.chained_assignment = None # So, it shuts up the warnings (remove when running in spyder)
+            # So it shuts up the warnings (remove when running in spyder)
+            pd.options.mode.chained_assignment = None
        
 
 
@@ -112,6 +107,7 @@ def generate_args(method):
 
 
         for line in params_file:
+            print(line)
             if len(line.split('=')) > 1:
                 key, value = line.split('=')
                 if len(value.split(';')) > 1:
@@ -126,7 +122,7 @@ def generate_args(method):
                     while dtype[0] == ' ' or dtype[0] == '\t': dtype = dtype[1:]
                     while dtype[-1] == ' ' or dtype[-1] == '\t': dtype = dtype[0:-1]
                     dtype = dtype.replace('\n',"")
-                    # print(key, value, dtype)
+                    print(key, value, dtype)
                     if dtype == 'string': varDict[key] = str(value)
                     elif dtype == 'list': varDict[key] = ast.literal_eval(value)
                     elif dtype == 'int': varDict[key] = int(value)               
@@ -135,7 +131,7 @@ def generate_args(method):
                     elif dtype == 'variable': varDict[key] = globals()[value]
                     elif dtype == 'eval': varDict[key] = eval(value)
 
-        # print(varDict)
+
             
     elif method == 'from_code':
         print('Generating args from code')
@@ -150,12 +146,12 @@ def generate_args(method):
         varDict['OUTPUTFOLDER']         = varDict['DATAPATH']+'Output/'
         # varDict['PARAMFOLDER']	        = f'{datapath}Parameters/Mass-GT/'
         
-        varDict['Parcels']              = varDict['INPUTFOLDER'] + 'Demand_parcels_fulfilmenttest.csv'        
+        varDict['Parcels']              = varDict['INPUTFOLDER'] + 'Demand_parcels_fulfilment_Wksp.csv'        
         varDict['SKIMTIME']             = varDict['INPUTFOLDER'] + 'skimTijd_new_REF.mtx'
         varDict['SKIMDISTANCE']         = varDict['INPUTFOLDER'] + 'skimAfstand_new_REF.mtx'
         varDict['ZONES']                = varDict['INPUTFOLDER'] + 'Zones_v4.shp'
         varDict['SEGS']                 = varDict['INPUTFOLDER'] + 'SEGS2020.csv'
-        varDict['PARCELNODES']          = varDict['INPUTFOLDER'] + 'parcelNodes_v2.shp'
+        varDict['PARCELNODES']          = varDict['INPUTFOLDER'] + 'parcelNodes_v2Cycloon.shp'
         varDict['CEP_SHARES']           = varDict['INPUTFOLDER'] + 'CEPshares.csv'
         varDict['Pax_Trips']            = varDict['INPUTFOLDER'] + 'trips.csv'
         
@@ -285,8 +281,8 @@ TestRunLen = 100
 These variables will be used throughout the whole model
 '''
 
-# Comienzo = dt.datetime.now()
-# print ("Comienzo: ",Comienzo)
+Comienzo = dt.datetime.now()
+print ("Comienzo: ",Comienzo)
 
 
 
@@ -334,13 +330,14 @@ for cep in cepList:
     cepSkimDict[cep] = parcelNodes[parcelNodes['CEP'] == cep]['SKIMNR'].astype(int).tolist()
 for cepNo in range(len(cepList)):
     cepNodeDict[cepList[cepNo]] = cepNodes[cepNo]
-
+Gemeenten = varDict['Gemeenten_studyarea']
 KPIs = {}
 
 #%%
 
 '''
 Model Starts
+
 '''
 
 
@@ -362,29 +359,41 @@ def get_compensation(dist_parcel_trip):
 
 
 def calc_score(u, v, d): #from, to, attributes (dict)
+    
     X1_travtime = d['travtime']/3600 # Time in hours
     X2_length = d['length']/1000     # Distance in km
     
     ASC, A1, A2, A3 = varDict['SCORE_ALPHAS']
-    tour_based_cost, consolidated_cost, hub_cost, cs_trans_cost ,interCEP_cost= varDict['SCORE_COSTS']
+    tour_based_cost, consolidated_cost, hub_cost, cs_trans_cost ,interCEP_cost,interCEP_pickup= varDict['SCORE_COSTS']
+    X3_costPup=0
+    X3_cost =0
     
     if d['network'] == 'conventional' and d['type'] in['consolidated']: X2_length = X2_length/50
     
     
     if u == orig or v == dest: return 0 # access and agress links to the network have score of 0
-    if G.nodes[u]['node_type'] == 'zone' and u not in {orig, dest}: return 99999 #other zones than orig/dest can not be used
+    if G.nodes[u]['node_type'] == 'zone' and u not in {orig, dest}: return 999991 #other zones than orig/dest can not be used
     if d['type'] == 'access-egress': return 0
-    if d['network'] == 'crowdshipping' and u not in allowed_cs_nodes: return 99999 #CS network except for certain nodes can not be used 
+    if d['network'] == 'crowdshipping' and u not in allowed_cs_nodes: return 999992 #CS network except for certain nodes can not be used 
 
     if not varDict['HYPERCONNECTED_NETWORK']: 
-        if d['network'] == 'conventional' and d['CEP'] != parcel['CEP']: return 99999 #Other conventional carriers can not be used
+        if d['network'] == 'conventional' and d['CEP'] != parcel['CEP']: return 999993 #Other conventional carriers can not be used
     else:
-        if d['network'] == 'conventional' and d['CEP'] != parcel['CEP'] and d['CEP'] not in HyperConect[parcel['CEP']]: return 99999 #only hub nodes may be used (no hub network at CEP depots), one directional only   
+        if d['network'] == 'conventional' and d['CEP'] != parcel['CEP'] and d['CEP'] not in HyperConect[parcel['CEP']]: return 999994 #only hub nodes may be used (no hub network at CEP depots), one directional only   
         else: X3_cost = interCEP_cost
     
-            
+
+    if u==orig and d['network'] == 'locker': #if we are considering a parcel to PL
+        return 999995  # For parcel locker to enforce that the original CEP picks it up. This can change if hyperconnectivity is complete...
     
-    if d['network'] == 'conventional' and d['type'] == 'hub' and v not in hub_nodes: return 99999 #only hub nodes may be used (no hub network at CEP depots)
+    #if parcel["PL"]!= 0:  # for parcels delivered to PL
+    if d['network']== 'conventional' and parcel['CEP']!=d['CEP']: #for parcel locker, to enforce that the original CEP picks it up.
+       X3_costPup = interCEP_pickup
+    
+    
+    
+    
+    if d['network'] == 'conventional' and d['type'] == 'hub' and v not in hub_nodes: return 999997 #only hub nodes may be used (no hub network at CEP depots)
     if d['network'] == 'conventional' and d['type'] in['tour-based']: X3_cost = tour_based_cost
     if d['network'] == 'conventional' and d['type'] in['consolidated']: X3_cost = consolidated_cost
     if d['network'] == 'conventional' and d['type'] in['hub']: X3_cost = hub_cost
@@ -394,7 +403,7 @@ def calc_score(u, v, d): #from, to, attributes (dict)
     if d['network'] == 'transshipment' and d['type'] == 'CS': X3_cost = cs_trans_cost
     if d['network'] == 'transshipment' and d['type'] == 'hub': X3_cost = hub_cost
     
-    score = ASC + A1*X1_travtime + A2 * X2_length + A3*X3_cost 
+    score = ASC + A1*X1_travtime + A2 * X2_length + A3*(X3_cost +X3_costPup)
     return score
 
 #%%   Module 2: Network creation
@@ -412,15 +421,44 @@ def actually_run_module(args):
 
     parcels = pd.read_csv(varDict['Parcels']);    parcels.index = parcels['Parcel_ID']
 
+    lockers_arr = varDict['parcelLockers_zones']
+    parcels['PL']=0 #creating a column filled with 0
+    PL_ZonalDemand = varDict['PL_ZonalDemand']
+    temp = parcels[parcels['D_zone'].isin(lockers_arr)].sample(frac = PL_ZonalDemand) #creating a temporary dataframe filled with parcels, selected among the ones with a D_zone in which there is a PL (chosing randomly through PL_ZonalDemand since not every parcel will be delivered in that way)
+    parcelsID = temp.Parcel_ID.unique()
+    parcels.loc[parcels['Parcel_ID'].isin(parcelsID),'PL'] = parcels['D_zone'] # Here we are allowing that only the parcels of a zone are capable of using lockers. This can be changed for neighbouring zones and this line should be updated
+    
+    # TODO when the parcels go to PL they have to go to the hyperconnected network
+    
+    
+    
+    del temp
+    
+    parcels.loc[parcels['PL'] != 0, 'Fulfilment'] = "Hyperconnected" #Fulfilment is Hyperconnected for all the parcels delivered to PLs
+    
     parcels_hubspoke = parcels [parcels['Fulfilment']=='Hubspoke']
     
-    parcels_hubspoke= parcels_hubspoke.drop(['L2L',"CS_eligible","Fulfilment"], axis=1) 
     
-    
+    parcels_hubspoke= parcels_hubspoke.drop(['L2L',"CS_eligible","DepotNumber","Fulfilment"], axis=1) 
+        
+      
+        
+        
     parcels_hyperconnected = parcels [parcels['Fulfilment']=='Hyperconnected']
-    # parcels_hyperconnected= parcels_hyperconnected.drop(['D_DepotNumber', 'D_DepotZone', 'Fulfilment','O_DepotNumber', 'O_DepotZone'], axis=1) 
-
+       
+    parcels_hyperconnected= parcels_hyperconnected.drop(['D_DepotNumber', 'D_DepotZone', 'Fulfilment','O_DepotNumber', 'O_DepotZone'], axis=1) 
+        
+        
+        
     
+    
+    #creating dataframe without parcel lockers
+   # parcels_filtered=(pd.merge(parcels,parcels_pl, indicator=True, how='outer').query('_merge=="left_only"').drop('_merge', axis=1))
+   # parcels_filtered['VEHTYPE'] = 7
+    #defining dataframe for parcels directed to Cycloon
+   # parcels_pl_to_cycloon = parcels_pl.assign(D_Zone = '1')
+   # parcels_pl_from_cycloon = parcels_pl.assign(O_Zone = '1')
+   # parcels_cycloon_total = parcels_pl_from_cycloon.append(parcels_cycloon)
     
     print("Create network...")
     
@@ -478,7 +516,7 @@ def actually_run_module(args):
                         'travtime': skimTravTime[invZoneDict[orig]-1,invZoneDict[dest]-1],
                         'network': 'crowdshipping',
                         'type': 'individual'}
-                    if attrs['length'] < (varDict['CS_MaxParcelDistance']*1000):  # TODO!
+                    if attrs['length'] < 10000:
                         G.add_edge(f"{orig}_CS", f"{dest}_CS", **attrs)
             nx.set_node_attributes(G, {f"{orig}_CS":'node'}, 'node_type')
             attrs = {'length': 0,'travtime': 0, 'network': 'crowdshipping', 'type': 'access-egress'}
@@ -520,29 +558,96 @@ def actually_run_module(args):
             CS_transshipment_nodes.append(f"{hub_zone}_hub")
     hub_nodes = [str(s) + '_hub' for s in varDict['hub_zones']] 
     
+    # '''Cycloon'''
+    # for CycloonHub in varDict['Cycloon_hubs']:
+    #     G.add_node(f"{hub_zone}_Cycloon", **{'node_type':'hub'})
+    #     for cep in cepList:
+    #         closest = cepZoneDict[cep][skimTravTime[invZoneDict[hub_zone]-1,[x-1 for x in cepSkimDict[cep]]].argmin()]
+    #         attrs = {'length': 0,'travtime': 0, 'network': 'conventional', 'type': 'hub', 'CEP': cep}
+    #         G.add_edge(f"{hub_zone}_Cycloon", f"{closest}_{cep}", **attrs)
+    #     for orig in zones['AREANR'][zones['GEMEENTEN'].isin(Gemeenten)]:
+    #         attrs = {
+    #             'length': skimDist[invZoneDict[hub_zone]-1,invZoneDict[orig]-1],
+    #             'travtime': skimTravTime[invZoneDict[hub_zone]-1,invZoneDict[orig]-1],
+    #             'network': 'parcelLockers',
+    #             'type': 'individual'}
+    #         G.add_edge(f"{hub_zone}_Cycloon", f"{orig}_CS", **attrs)
+    #     CS_transshipment_nodes.append(f"{hub_zone}_Cycloon")
+    # hub_nodes = [str(s) + '_hub' for s in varDict['Cycloon_hubs']]  
     
+    #indexCycloon = cepList.index(varDict['ParcelLockersfulfilment'])
+    
+    PLFulfilment = varDict['ParcelLockersfulfilment'] #Done just by Cycloon right now, but in case changeable 
     
     '''Parcel Lockers'''
-    #for locker in varDict['parcelLockers_zones']:
-    #    G.add_node(f"{hub_zone}_locker", **{'node_type':'locker'})
-    #    for cep in cepList:
-    #        closest = cepZoneDict[cep][skimTravTime[invZoneDict[hub_zone]-1,[x-1 for x in cepSkimDict[cep]]].argmin()]
-    #        attrs = {'length': 0,'travtime': 0, 'network': 'conventional', 'type': 'hub', 'CEP': cep}
-    #        G.add_edge(f"{hub_zone}_hub", f"{closest}_{cep}", **attrs)
-    #    for orig in zones['AREANR'][zones['GEMEENTEN'].isin(Gemeenten)]:
-    #        attrs = {
-    #            'length': skimDist[invZoneDict[hub_zone]-1,invZoneDict[orig]-1],
-    #            'travtime': skimTravTime[invZoneDict[hub_zone]-1,invZoneDict[orig]-1],
-    #            'network': 'crowdshipping',
-    #            'type': 'individual'}
-    #        G.add_edge(f"{hub_zone}_hub", f"{orig}_CS", **attrs)
-    #    CS_transshipment_nodes.append(f"{hub_zone}_hub")
-    #hub_nodes = [str(s) + '_hub' for s in varDict['hub_zones']] 
+    if len(varDict['parcelLockers_zones']) != 0:  #this part runs only if there are available PL
+        locker_zones=varDict['parcelLockers_zones']
+        for locker in locker_zones:
+            G.add_node(f"{locker}_locker", **{'node_type':'locker'}) #defining a node for each PL (ex. 566_locker)
+            attrs = {'length': 0,'travtime': 0, 'network': 'locker', 'type': 'access-egress', 'CEP': "locker"}
+            G.add_edge( f"{locker}_locker",locker, **attrs)  
+            
+            
+            for cep in PLFulfilment:
+                # closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1,[x-1 for x in cepSkimDict[cep]]].argmin()] #defining closest depot for every CEP. In this system the only CEP is Cycloon, for the final delivery to the Parcel Locker
+                closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1,cepSkimDict[cep]].argmin()]
+
+                # nx.set_node_attributes(G, {f"{locker}_{cep}":'parcelLocker'}, 'node_type')
+                attrs = {
+                    'length': skimDist[invZoneDict[locker]-1,invZoneDict[closest]-1],
+                    'travtime': skimTravTime[invZoneDict[locker]-1,invZoneDict[closest]-1],# Travel time is right now car based but for bicycle can change
+                    'network': 'locker',
+                    'type': 'tour-based',
+                    'CEP': cep}
+                G.add_edge(f"{locker}_locker", f"{closest}_{cep}", **attrs)
+            # for zoneID in zones['AREANR'][:]:   #connect each zone to the closest parcel locker
+            #        #G.add_node(f"{zoneID}_{locker}", **{'node_type':'node'})
+            #        closestLocker = locker_zones[skimTravTime[invZoneDict[zoneID]-1,locker_zones].argmin()] #defining closest PL for each zone (It will be possible to consider other zones closest to the PL)
+            #        attrs = {'length': 0,'travtime': 0, 'network': 'locker', 'type': 'access-egress', 'CEP': "locker"}
+            #        G.add_edge( f"{closestLocker}_locker",zoneID, **attrs)  
+        
+            
+               # attrs = {'length': 0,'travtime': 0, 'network': 'locker', 'type': 'access-egress', 'CEP': cep}
+                #G.add_edge(zoneID, f"{zoneID}_locker", **attrs) 
+          #################### DA RIGUARDARE ###################      
+              
+            
+     
+                                
+            
+                
     
+            # attrs = {'length': 0,'travtime': 0, 'network': 'conventional', 'type': 'hub', 'CEP': cep}
+            # G.add_edge(f"{locker}_locker", f"{closest}_{cep}", **attrs)
+        # for orig in zones['AREANR'][zones['GEMEENTEN'].isin(Gemeenten)]:
+        #for orig in zones['AREANR'][:]:
+        #   attrs = {
+        #       'length': skimDist[invZoneDict[locker]-1,invZoneDict[orig]-1],
+        #       'travtime': skimTravTime[invZoneDict[locker]-1,invZoneDict[orig]-1],
+        #       # 'network': 'parcelLockers',
+        #       'network': 'conventional',
+        #       'type': 'individual',
+        #       "CEP":cep} # Just added this line to make sure it tests
+        #   G.add_edge(f"{locker}_locker", f"{orig}_{cep}", **attrs)
+        #   CS_transshipment_nodes.append(f"{locker}_locker")
+        # for cep in PLFulfilment: #connect parcelnodes from one carrier to eachother
+        #     nx.set_node_attributes(G, {f"{locker}_{cep}":'parcelLocker'}, 'node_type')
+        #     attrs = {
+        #             'length': skimDist[invZoneDict[parcelNode]-1,invZoneDict[other_node]-1],
+        #             'travtime': skimTravTime[invZoneDict[parcelNode]-1,invZoneDict[other_node]-1],
+        #             'network': 'parcelLockers',
+        #             'type': 'consolidated',
+        #             'CEP': cep}
+        #     G.add_edge(f"{locker}_locker", f"{closest}_{cep}", **attrs)
+        
+        
+    # hub_nodes = [str(s) + '_hub' for s in varDict['hub_zones']] 
+    
+    G.has_edge('799_Cycloon', '800_locker')
     
     '''Hyperconnect'''
     
-    HyperConect = varDict['HyperConect']
+    HyperConect = varDict['HyperConect'] #for PL the hyperconnectivy will be related just to Cycloon. Consolidation in Cycloon's Hubs
     
     
     if varDict['HYPERCONNECTED_NETWORK']:
@@ -580,7 +685,7 @@ def actually_run_module(args):
     
     # print(varDict['SCORE_COSTS'])
     ASC, A1, A2, A3 = varDict['SCORE_ALPHAS']
-    tour_based_cost, consolidated_cost, hub_cost, cs_trans_cost ,interCEP_cost= varDict['SCORE_COSTS']
+    tour_based_cost, consolidated_cost, hub_cost, cs_trans_cost ,interCEP_cost,interCEP_pickup= varDict['SCORE_COSTS']
     
     globals() ['varDict'] = varDict         # Temporary solution when it's needed to run within a function
     globals() ['HyperConect'] = HyperConect
@@ -596,30 +701,32 @@ def actually_run_module(args):
     
     parcels_hyperconnected['path'] = type('object')
     
+    
+    #parcels_hyperconnected = parcels_hyperconnected[parcels_hyperconnected['CS_eligible']='False']   # THIS HAS TO BE REMOVED FOR THE COMPLETE RUN; JUST SO ITS FASTER IN TESTING!
+    
+    
     # i = 0
     
-    
-    
     for index, parcel in parcels_hyperconnected.iterrows():
-        # count+=1
-        
-       
+        # i+=1
+        if parcel ['PL'] != 0: #run just for parcels directed to the PL
+            locker = parcel ['PL']
+            #CEP = parcel ['CEP']
+        dest = parcel['D_zone'] #we change temporarilly the destination zone to the parcel locker
         orig = parcel['O_zone']
-        dest = parcel['D_zone']
+            # orig = f"{orig}_{CEP}" # we change temporarilly the destination zone to the parcel locker! This way we FORCE the original CEP picks up the parcel
+
         globals() ['orig'] = orig         # Temporary solution when it's needed to run within a function
         globals() ['dest'] = dest
         globals() ['G'] = G
         globals() ['parcel'] = parcel
+               # Hre you connect the Courier companies to the company that does the fulfilment 
 
-
-        # if parcel['CEP'] in (varDict['CrowdshippingWithCouriers']): 
-        if (parcel['CS_eligible'] == True ):   # This is too slow!!!!!!!! TODO: improve
+            
+        if parcel['CS_eligible'] == True: # This is too slow!!!!!!!! TODO: improve
             k = 1; allowed_cs_nodes = CS_transshipment_nodes + [f'{orig}_CS', f'{dest}_CS']
         else:
             k = 1; allowed_cs_nodes = []
-        # else:
-        #     k = 1; allowed_cs_nodes = []
-        
         globals() ['allowed_cs_nodes'] = allowed_cs_nodes
 
         shortest_paths = k_shortest_paths(G, orig, dest, k, weight = lambda u, v, d: calc_score(u, v, d=G[u][v]))
@@ -629,7 +736,53 @@ def actually_run_module(args):
                 weightSum += calc_score(pair[0], pair[1], G.get_edge_data(pair[0],pair[1]))
         parcels_hyperconnected.at[index,'path'] = shortest_paths[0]
         parcels_hyperconnected.at[index,'weightSum'] = weightSum
-        # print(count,"  from  ", len(parcels_hyperconnected))
+        # print(i,"  from  ", len(parcels_hyperconnected))
+
+
+
+    # if TESTRUN: parcels_hubspoke = parcels_hubspoke[:TestRunLen] #for testrun, state TESTRUN = True (end of module 0)
+    
+    # parcels_hubspoke['path'] = type('object')
+    
+    
+    # #parcels_hyperconnected = parcels_hyperconnected[parcels_hyperconnected["PL"]!=0]   # THIS HAS TO BE REMOVED FOR THE COMPLETE RUN; JUST SO ITS FASTER IN TESTING!
+    
+    
+    # # i = 0
+    
+    # for index, parcel in parcels_hubspoke.iterrows():
+    #     # i+=1
+    #     if parcel ['PL'] != 0: #run just for parcels directed to the PL
+    #         locker = parcel ['PL']
+    #         #CEP = parcel ['CEP']
+    #         dest = parcel['D_zone'] #we change temporarilly the destination zone to the parcel locker
+    #         orig = parcel['O_zone']
+    #         # orig = f"{orig}_{CEP}" # we change temporarilly the destination zone to the parcel locker! This way we FORCE the original CEP picks up the parcel
+    #     else:
+    #         dest = parcel['D_zone']
+    #         orig = parcel['O_zone']
+    #     globals() ['orig'] = orig         # Temporary solution when it's needed to run within a function
+    #     globals() ['dest'] = dest
+    #     globals() ['G'] = G
+    #     globals() ['parcel'] = parcel
+    #            # Hre you connect the Courier companies to the company that does the fulfilment 
+
+            
+    #     if parcel['CS_eligible'] == True: # This is too slow!!!!!!!! TODO: improve
+    #         k = 1; allowed_cs_nodes = CS_transshipment_nodes + [f'{orig}_CS', f'{dest}_CS']
+    #     else:
+    #         k = 1; allowed_cs_nodes = []
+    #     globals() ['allowed_cs_nodes'] = allowed_cs_nodes
+
+    #     shortest_paths = k_shortest_paths(G, orig, dest, k, weight = lambda u, v, d: calc_score(u, v, d=G[u][v]))
+    #     for path in shortest_paths:
+    #         weightSum = 0
+    #         for pair in pairwise(path):
+    #             weightSum += calc_score(pair[0], pair[1], G.get_edge_data(pair[0],pair[1]))
+    #     parcels_hubspoke.at[index,'path'] = shortest_paths[0]
+    #     parcels_hubspoke.at[index,'weightSum'] = weightSum
+    #     # print(i,"  from  ", len(parcels_hyperconnected))
+
 
 
 
@@ -649,13 +802,16 @@ def actually_run_module(args):
         # i+=1
         path = parcels_hyperconnected.at[index,'path']
         path = path[1:-1] #remove the first and last node from path (these are the access/egress links)
-        for pair in pairwise(path):
+        for pair in pairwise(path): #dividing all trips in their parts
             orig = int(pair[0].split("_")[0]) #remove network from node name (only keep zone number)
             dest = int(pair[1].split("_")[0])
             network = G[pair[0]][pair[1]]['network']
             edge_type = G[pair[0]][pair[1]]['type']
             cep = ''
-            if network == 'conventional': cep = G[pair[0]][pair[1]]['CEP'] #CEP only applicable to conventional links
+            if network == 'conventional':
+                cep = G[pair[0]][pair[1]]['CEP'] #CEP only applicable to conventional links
+            elif network == 'locker':
+                cep = G[pair[0]][pair[1]]['CEP'] #CEP only applicable to conventional links
             parcel_trips = parcel_trips.append(pd.DataFrame([[parcel['Parcel_ID'], orig, dest, cep, network, edge_type]], columns=cols), ignore_index=True) #add trip to dataframe
         # print(i,"  from  ", len(parcels_hyperconnected))
     
@@ -678,7 +834,7 @@ def actually_run_module(args):
             from LEAD_module_CS import actually_run_module #load right module
             actually_run_module(args) #run module
             parcel_trips_CS = pd.read_csv(f"{varDict['OUTPUTFOLDER']}Parcels_CS_matched_{varDict['LABEL']}.csv") #load module output to dataframe
-            Trips_CS        = pd.read_csv(f"{varDict['OUTPUTFOLDER']}TripsCS_{varDict['LABEL']}.csv")
+            
             # TODO 
             # TO DO
             # See what happens when there are no unmatched
@@ -707,45 +863,26 @@ def actually_run_module(args):
     Allocate the conventional parcels using the MASS-GT Parcel Scheduling module
     For this, the conventional parcels are splitted into delivery and pickup trips
     '''
-    # Add the hubspoke parcels that were separated at the beginning
-  
-    
-    
-    
-    
     error = 0
     parcel_trips_HS_delivery = parcel_trips.drop_duplicates(subset = ["Parcel_ID"], keep='last') #pick the final part of the parcel trip
-    parcel_trips_HS_delivery = parcel_trips_HS_delivery[((parcel_trips_HS_delivery['Network'] == 'conventional') & (parcel_trips_HS_delivery['Type'] == 'tour-based'))] #only take parcels which are conventional & tour-based
+    parcel_trips_HS_delivery = parcel_trips_HS_delivery[((parcel_trips_HS_delivery['Network'] == 'conventional') | (parcel_trips_HS_delivery['Network'] == 'locker')) & (parcel_trips_HS_delivery['Type'] == 'tour-based')] #only take parcels which are conventional & tour-based
     if varDict['CROWDSHIPPING_NETWORK']: parcel_trips_HS_delivery = parcel_trips_HS_delivery.append(parcel_trips_CS_unmatched_delivery, ignore_index=True,sort=False) #add unmatched CS as well
     
-    # parcel_trips_HS_delivery.insert(3, 'DepotNumber', np.nan) #add depotnumer column
+    parcel_trips_HS_delivery.insert(3, 'DepotNumber', np.nan) #add depotnumer column
     for index, parcel in parcel_trips_HS_delivery.iterrows(): #loop over parcels
         try:
             parcel_trips_HS_delivery.at[index, 'DepotNumber'] = parcelNodes[((parcelNodes['CEP'] == parcel['CEP']) & (parcelNodes['AREANR'] == parcel['O_zone']))]['id'] #add depotnumer to each parcel
-            parcel_trips_HS_delivery.at[index, 'VEHTYPE'] = 7
         except:
             parcel_trips_HS_delivery.at[index, 'DepotNumber'] = parcelNodes[((parcelNodes['CEP'] == parcel['CEP']))]['id'].iloc[0] # Get first node as an exception
             error +=1
-    # parcel_trips_HS_delivery['L2L'] = True
-    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_L2L_delivery_{varDict['LABEL']}.csv"
-        # Add the parceltrips for the HubSpoke network here!! parcels_hubspoke
-    
-
-    
-    
-    
-    
+    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_HS_delivery_{varDict['LABEL']}.csv"
     parcel_trips_HS_delivery.to_csv( out, index=False) #output these parcels to default location for scheduling
     
    
     
     
     parcel_trips_HS_pickup = parcel_trips.drop_duplicates(subset = ["Parcel_ID"], keep='first') #pick the first part of the parcel trip
-    parcel_trips_HS_pickup = parcel_trips_HS_pickup[((parcel_trips_HS_pickup['Network'] == 'conventional') & (parcel_trips_HS_pickup['Type'] == 'tour-based'))] #only take parcels which are conventional & tour-based
-
-    
-    
-    
+    parcel_trips_HS_pickup = parcel_trips_HS_pickup[((parcel_trips_HS_delivery['Network'] == 'conventional') | (parcel_trips_HS_delivery['Network'] == 'locker')) & (parcel_trips_HS_pickup['Type'] == 'tour-based')] #only take parcels which are conventional & tour-based
     
     
     
@@ -789,23 +926,27 @@ def actually_run_module(args):
     for index, parcel in parcel_trips_HS_pickup.iterrows(): #loop over parcels
         try:
             parcel_trips_HS_pickup.at[index, 'DepotNumber'] = parcelNodes[((parcelNodes['CEP'] == parcel['CEP']) & (parcelNodes['AREANR'] == parcel['D_zone']))]['id'] #add depotnumer to each parcel
-            parcel_trips_HS_delivery.at[index, 'VEHTYPE'] = 7
         except:
             parcel_trips_HS_pickup.at[index, 'DepotNumber'] = parcelNodes[((parcelNodes['CEP'] == parcel['CEP']) )]['id'].iloc[0] #add depotnumer to each parcel
             error2 += 1
     
-    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_L2L_pickup_{varDict['LABEL']}.csv"
+    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_HS_pickup_{varDict['LABEL']}.csv"
     parcel_trips_HS_pickup.to_csv(out, index=False) #output these parcels to default location for scheduling
     
     
-    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_ParcelTripsL2L_{varDict['LABEL']}.csv"
+    out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_ParcelTrips_{varDict['LABEL']}.csv"
     parcel_trips.to_csv(out, index=False)
+    
     
     
     ## Export the "untouched" hubspoke parcels
     
     out = f"{varDict['OUTPUTFOLDER']}ParcelDemand_ParcelHubSpoke_{varDict['LABEL']}.csv"
     parcels_hubspoke.to_csv(out, index=False)    
+    
+    
+ 
+    
     
     
 
@@ -825,127 +966,16 @@ def actually_run_module(args):
     """
     
     
-    KPIs['Local2Local']  =int( parcels['L2L'].sum())
-    KPIs['Local2Local_Percentage']  = round(100*parcels['L2L'].sum()/ len(parcels),2)
-    
-    
-    DHL =0
-    DPD=0
-    FedEx=0
-    GLS=0
-    PostNL=0
-    UPS=0
-    
-    for index,parcel in parcel_trips_HS_pickup.iterrows(): # For some reason the pick up is closer to the actual L2L values (minus CS)
-            if parcel['CEP'] == 'DHL':
-                DHL+=1
-            elif parcel['CEP'] == "DPD":
-                DPD+=1
-            elif parcel['CEP'] == "FedEx":
-                FedEx+=1
-            elif parcel['CEP'] == "GLS":
-                GLS+=1                
-            elif parcel['CEP'] == "PostNL":
-                PostNL+=1    
-            elif parcel['CEP'] == "UPS":
-                UPS+=1                
-    
-    KPIs["L2L_DHL"]      = DHL
-    KPIs["L2L_DPD"]      =   DPD
-    KPIs["L2L_FedEx"]    =  FedEx  
-    KPIs["L2L_GLS"]      = GLS 
-    KPIs["L2L_PostNL"]   =  PostNL   
-    KPIs["L2L_UPS"]      =   UPS
-    
     
     
     if varDict['CROWDSHIPPING_NETWORK']: 
-        
-        if  len(parcel_trips_CS) > 0:
-            WalkBikekm = 0.00001 # To avoid division by 0
-            Carkm   = 0.000001
-            CarCompensation =0.0000001
-            WalkBikeCompensation =0.00001
-            CarCount =0
-            WalkBikeCount=0
-            
-            for index, parcel in parcel_trips_CS.iterrows():
-                if parcel["Mode"] in (['Car','Car as Passenger']):
-                    Carkm += parcel["detour"]
-                    CarCompensation  += parcel["compensation"]
-                    CarCount+=1
-                elif parcel["Mode"]in(["Walking or Biking"]):
-                    WalkBikekm += parcel["detour"]
-                    WalkBikeCompensation   += parcel["compensation"]
-                    WalkBikeCount  +=1
-            
-            KPIs['Crowdshipping'] = {
-                'parcels' : len(parcel_trips_CS),
-                'PoolOfTrips':len(Trips_CS),
-                'PoolOfTravellers':len(set(Trips_CS['person_id'])),
-                'parcels_matched' : int(parcel_trips_CS['trip'].notna().sum()),
-                'match_percentage': round((parcel_trips_CS['trip'].notna().sum()/len(parcel_trips_CS))*100,1),
-                'detour_sum': int(parcel_trips_CS['detour'].sum()),
-                'detour_avg': round(parcel_trips_CS['detour'].mean(),2),
-                'compensation_avg': round(parcel_trips_CS['compensation'].mean(),2),
-                'PlatformComission' : round(parcel_trips_CS['CS_comission'].sum(),2),
-                # 'PlatformComission_avg' : round(parcel_trips_CS['CS_comission'].sum()/(KPIs['Crowdshipping']["parcels_matched"] ),2),
-                'car': {
-                      'detour':round(Carkm,2),
-                      'extraTime':round(Carkm /  varDict['CarSpeed'],2),
-                      'Compensation':round(CarCompensation,2),
-                      'CompPerHour':round(CarCompensation / (round(Carkm /  varDict['CarSpeed'],2)+0.0001),2 ),
-                      'Count':int(CarCount),
-                      'Share':round ( 100*CarCount / (CarCount+WalkBikeCount),2),
-                      'detour_av':round (Carkm /(CarCount+1),2),
-                    },
-                'bikeWalk': {
-                       'detour':round(WalkBikekm,2),
-                       'extraTime':round(WalkBikekm / varDict['WalkBikeSpeed'] ,2),
-                       'Compensation':round(WalkBikeCompensation,2),
-                       'CompPerHour':round(WalkBikeCompensation / (round(WalkBikekm / varDict['WalkBikeSpeed'] ,2) +0.0001),2),
-                       'Count':int(WalkBikeCount),
-                       'Share':round(100*WalkBikeCount / (CarCount+WalkBikeCount),2),
-                       'tour_av':round(WalkBikekm /(WalkBikeCount+1),2),
-                    },
-
-                'crowdshipping_ExtraCO2':round(Carkm * varDict['CarCO2'],2 )
-                }
-
-        else:
-            KPIs['Crowdshipping'] = {
-                parcels :0
-                }
-        
-        
-        
-        # KPIs['crowdshipping_parcels'] = len(parcel_trips_CS)
-        # if KPIs['crowdshipping_parcels'] > 0:
-        #     KPIs['crowdshipping_parcels_matched'] = parcel_trips_CS['trip'].notna().sum()
-        #     KPIs['crowdshipping_match_percentage'] = round((KPIs['crowdshipping_parcels_matched']/KPIs['crowdshipping_parcels'])*100,1)
-        #     KPIs['crowdshipping_detour_sum'] = int(parcel_trips_CS['detour'].sum())
-        #     KPIs['crowdshipping_detour_avg'] = round(parcel_trips_CS['detour'].mean(),2)
-        #     KPIs['crowdshipping_compensation'] = round(parcel_trips_CS['compensation'].mean(),2)
-            
-            
-        #     WalkBikekm = 0.00001 # To avoid division by 0
-        #     Carkm   = 0.000001
-        #     CarCompensation =0.0000001
-        #     WalkBikeCompensation =0.00001
-        #     CarCount =1
-        #     WalkBikeCount=1
-            
-        #     for index, parcel in parcel_trips_CS.iterrows():
-        #         if parcel["mode"] in (['car','Car as Passenger']):
-        #             Carkm += parcel["detour"]
-        #             CarCompensation  += parcel["compensation"]
-        #             CarCount+=1
-        #         elif parcel["mode"]in(["Walking or Biking"]):
-        #             WalkBikekm += parcel["detour"]
-        #             WalkBikeCompensation   += parcel["compensation"]
-        #             WalkBikeCount  +=1
-            
-
+        KPIs['crowdshipping_parcels'] = len(parcel_trips_CS)
+        if KPIs['crowdshipping_parcels'] > 0:
+            KPIs['crowdshipping_parcels_matched'] = parcel_trips_CS['trip'].notna().sum()
+            KPIs['crowdshipping_match_percentage'] = round((KPIs['crowdshipping_parcels_matched']/KPIs['crowdshipping_parcels'])*100,1)
+            KPIs['crowdshipping_detour_sum'] = int(parcel_trips_CS['detour'].sum())
+            KPIs['crowdshipping_detour_avg'] = round(parcel_trips_CS['detour'].mean(),2)
+            KPIs['crowdshipping_compensation'] = round(parcel_trips_CS['compensation'].mean(),2)
 
     KPIfile = varDict['OUTPUTFOLDER'] + 'KPI_' + varDict['LABEL']+'.json'
     
@@ -1005,3 +1035,7 @@ actually_run_module(args)
 
 End = dt.datetime.now()
 print ("duration: ",End - Comienzo)    
+
+
+
+
