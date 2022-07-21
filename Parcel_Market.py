@@ -57,10 +57,10 @@ def generate_args(method):
     if method == 'from_file':   
             
         if sys.argv[0] == '':
-            params_file = open(f'{datapath}/Input/Params_ParcelMarketTRA_CS.txt')
+            params_file = open(f'{datapath}/Input/Params_ParcelMarketTRA_CS_A_7.txt')
             
             # This are the defaults, might need to change for console run!!!
-            varDict['LABEL'	]			= 'TRA_CS'				
+            varDict['LABEL'	]			= 'TRA_CS_sensBase'				
             varDict['DATAPATH']			= datapath							
             varDict['INPUTFOLDER']		= f'{datapath}'+'/'+ 'Input' +'/' 				
             varDict['OUTPUTFOLDER']		= f'{datapath}'+'/'+ 'Output' +'/'			
@@ -478,7 +478,7 @@ def actually_run_module(args):
                         'travtime': skimTravTime[invZoneDict[orig]-1,invZoneDict[dest]-1],
                         'network': 'crowdshipping',
                         'type': 'individual'}
-                    if attrs['length'] < (varDict['CS_MaxParcelDistance']*1000):
+                    if attrs['length'] < (varDict['CS_MaxParcelDistance']*1000):  # TODO!
                         G.add_edge(f"{orig}_CS", f"{dest}_CS", **attrs)
             nx.set_node_attributes(G, {f"{orig}_CS":'node'}, 'node_type')
             attrs = {'length': 0,'travtime': 0, 'network': 'crowdshipping', 'type': 'access-egress'}
