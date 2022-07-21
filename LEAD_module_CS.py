@@ -378,6 +378,13 @@ def actually_run_module(args):
                         time_traveller_parcel   = 60 * dist_traveller_parcel  /  varDict['WalkBikeSpeed']  # Result in minutes (if timefact = 1)
                         time_parcel_trip        = 60 * dist_parcel_trip       /  varDict['WalkBikeSpeed'] # Result in minutes (if timefact = 1)
                         time_customer_end       = 60 * dist_customer_end     / varDict['WalkBikeSpeed'] # Result in minutes (if timefact = 1)
+                        
+                        # Change this to make sure I don't have negative time detours! (sometimes it happens that they have less travel distances)
+                        
+                        time_traveller_parcel  =get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime['car'], nSkimZones, timeFac) * varDict['CarSpeed']/varDict['WalkBikeSpeed']
+                        time_parcel_trip       =get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime['car'], nSkimZones, timeFac) * varDict['CarSpeed']/varDict['WalkBikeSpeed']
+                        time_customer_end      = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime['car'], nSkimZones, timeFac)* varDict['CarSpeed']/varDict['WalkBikeSpeed']
+                        
                         CS_TravelCost           = 0
                     if mode in ['walk', 'pt']: CS_pickup_time = droptime_pt
                     if mode in ['walk']:
@@ -408,6 +415,10 @@ def actually_run_module(args):
                     Surplus   = Util_PickUp-traveller['BaseUtility']
                     Detour    = CS_trip_dist - traveller['travdist']
                     # print(Surplus)
+                    
+                    #TODO: para estar seguros q no da ese error de la distancia negativa:
+                    # if Detour <=0:
+                    #     Surplus = 0
                     
                     if Surplus>0:
                         
