@@ -1,0 +1,26 @@
+
+CROWDSHIPPING_NETWORK		= True						; bool
+COMBINE_DELIVERY_PICKUP_TOUR 	= True 						; bool
+HYPERCONNECTED_NETWORK		= True						; bool
+TESTRUN                         = False						; bool
+printKPI  			= True 						; bool
+
+
+'''FOR PARCEL MARKET MODULE'''
+hub_zones		= []													; list  # 585
+parcelLockers_zones	= []													; list  # 585
+Gemeenten_studyarea	= ["sGravenhage"]											; list
+Gemeenten_CS		= ["sGravenhage", "Zoetermeer", "Midden_Delfland"]							; list
+SCORE_ALPHAS		= [0,0,1,0]												; list # ASC, alphaTime, alphaDist, alphaCost
+SCORE_COSTS		= [2, .2, .2, 0 , 0]											; list # tour_based, consolidated, hub, cs_trans,interCEP_cost
+CONSOLIDATED_MAXLOAD	= 500													; int
+HyperConect  		= {"DHL": [] , "DPD": ['FedEx', 'GLS',  'UPS'] , "FedEx": ['DPD',  'GLS',  'UPS'] ,  "GLS": ['DPD', 'FedEx',  'UPS'] ,"PostNL": [] ,  "UPS": ['DPD', 'FedEx', 'GLS'] ,}	; list
+
+'''FOR CROWDSHIPPING MATCHING MODULE'''
+CS_WILLINGNESS       			= 0.2										; float
+VOT                  			= 9.00										; string
+PARCELS_DROPTIME_CAR 			= 120 										; int
+PARCELS_DROPTIME_BIKE			= 60 										; int #and car passenger
+PARCELS_DROPTIME_PT  			= 0 										; int #and walk
+CS_BringerScore				= Min_Detour									; string # Min_Detour or Surplus 
+CS_COMPENSATION				= math.log( (dist_parcel_trip) + 2)   						; string # Min_Detour or Surplus 
