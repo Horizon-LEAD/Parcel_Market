@@ -74,6 +74,8 @@ def main():
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDefaultsHelpFormatter)
 
+    parser.add_argument('DEMANDPARCELS', type=strfile,
+                        help='The path of the parcels demand file (csv)')
     parser.add_argument('SKIMTIME', type=strfile, help='The path of the time skim matrix (mtx)')
     parser.add_argument('SKIMDISTANCE', type=strfile,
                         help='The path of the distance skim matrix (mtx)')
@@ -81,20 +83,15 @@ def main():
     parser.add_argument('SEGS', type=strfile, help='The path of the socioeconomics data file (csv)')
     parser.add_argument('PARCELNODES', type=strfile,
                         help='The path of the parcel nodes file (shp)')
-    parser.add_argument('CEP_SHARES', type=strfile,
-                        help='The path of the courier market shares file (csv)')
-    parser.add_argument('EXTERNAL_ZONES', type=strfile,
-                        help='The path of the external nodes file (csv)')
+    parser.add_argument('TRIPS', type=strfile, help='The path of the trips file (csv)')
     parser.add_argument('OUTDIR', type=strdir, help='The output directory')
 
     parser.add_argument('-v', '--verbosity', action='count', default=0,
                         help='Increase output verbosity')
     parser.add_argument('--flog', action='store_true', default=False,
                         help='Stores logs to file')
-    parser.add_argument('-e', '--env', type=str, default=None,
+    parser.add_argument('-e', '--env', type=strfile, default=None,
                         help='Defines the path of the environment file')
-    parser.add_argument('--gui', action='store_true', default=False,
-                        help='Displays the graphical user interface')
 
     args = parser.parse_args(argv[1:])
 
@@ -121,7 +118,7 @@ def main():
 
     # setting of the configuration
     config = vars(args).copy()
-    _ = [config.pop(key) for key in ("verbosity", "flog", "env", "gui")]
+    _ = [config.pop(key) for key in ("verbosity", "flog", "env")]
     config_env = {}
     if args.env:
         if isfile(abspath(args.env)):
@@ -137,14 +134,6 @@ def main():
 
     for key, value in config.items():
         print(f'{key:<30s}: {value}')
-
-    # if args.gui:
-    #     from .ui import ParcelGenUI
-
-    #     root = ParcelGenUI(config)
-    #     print(root.return_info)
-
-    #     return
 
     # run_model(config)
 
