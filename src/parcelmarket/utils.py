@@ -4,11 +4,14 @@
 from logging import getLogger
 import array
 import os.path
+import math
 from json import loads
+from itertools import islice, tee
 
 import pandas as pd
 import numpy as np
 import shapefile as shp
+import networkx as nx
 
 BOOL_VALUES = ('true', 't', 'on', '1', 'false', 'f', 'off', '0')
 BOOL_TRUE_VALUES = ('true', 't', 'on', '1')
@@ -217,3 +220,117 @@ def create_geojson(output_path, dataframe, origin_x, origin_y, destination_x, de
         geo_file.write(output_str)
         geo_file.write(']\n')
         geo_file.write('}')
+
+
+def k_shortest_paths(G, source, target, k, weight=None):
+    """_summary_
+
+    :param G: _description_
+    :type G: _type_
+    :param source: _description_
+    :type source: _type_
+    :param target: _description_
+    :type target: _type_
+    :param k: _description_
+    :type k: _type_
+    :param weight: _description_, defaults to None
+    :type weight: _type_, optional
+    :return: _description_
+    :rtype: _type_
+    """
+    return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), k))
+
+
+def pairwise(iterable):
+    """_summary_
+
+    :param iterable: _description_
+    :type iterable: _type_
+    :return: _description_
+    :rtype: _type_
+    """
+    a, b = tee(iterable)
+    next(b, None)
+
+    return zip(a, b)
+
+
+def get_compensation(dist_parcel_trip):
+    return math.log( (dist_parcel_trip) + 2)
+
+
+def calc_score(
+    G, u, v, orig, dest,
+    d,
+    allowed_cs_nodes, hub_nodes,
+    parcel,
+    cfg: dict
+):
+    """_summary_
+
+    :param u: _description_
+    :type u: _type_
+    :param v: _description_
+    :type v: _type_
+    :param d: _description_
+    :type d: dict
+    :return: _description_
+    :rtype: _type_
+    """
+    X1_travtime = d['travtime'] / 3600      # Time in hours
+    X2_length = d['length'] / 1000          # Distance in km
+
+    ASC, A1, A2, A3 = cfg['SCORE_ALPHAS']
+    tour_based_cost, consolidated_cost, hub_cost, cs_trans_cost, interCEP_cost = cfg['SCORE_COSTS']
+
+    if d['network'] == 'conventional' and d['type'] in['consolidated']:
+        X2_length = X2_length/50
+
+    if u == orig or v == dest:
+        # access and agress links to the network have score of 0
+        return 0
+
+    # other zones than orig/dest can not be used
+    if G.nodes[u]['node_type'] == 'zone' and u not in {orig, dest}:
+        return 99999
+
+    if d['type'] == 'access-egress':
+        return 0
+
+    # CS network except for certain nodes can not be used
+    if d['network'] == 'crowdshipping' and u not in allowed_cs_nodes:
+        return 99999
+
+    if not cfg['HYPERCONNECTED_NETWORK']:
+        # Other conventional carriers can not be used
+        if d['network'] == 'conventional' and d['CEP'] != parcel['CEP']:
+            return 99999
+    else:
+        if (d['network'] == 'conventional'
+            and d['CEP'] != parcel['CEP']
+            and d['CEP'] not in cfg["HyperConect"][parcel['CEP']]):
+            # only hub nodes may be used (no hub network at CEP depots), one directional only
+            return 99999
+        else: X3_cost = interCEP_cost
+
+    # only hub nodes may be used (no hub network at CEP depots)
+    if d['network'] == 'conventional' and d['type'] == 'hub' and v not in hub_nodes:
+        return 99999
+    if d['network'] == 'conventional' and d['type'] in['tour-based']:
+        X3_cost = tour_based_cost
+    if d['network'] == 'conventional' and d['type'] in['consolidated']:
+        X3_cost = consolidated_cost
+    if d['network'] == 'conventional' and d['type'] in['hub']:
+        X3_cost = hub_cost
+
+    if d['network'] == 'crowdshipping':
+        X3_cost = get_compensation(X2_length)
+
+    if d['network'] == 'transshipment' and d['type'] == 'CS':
+        X3_cost = cs_trans_cost
+    if d['network'] == 'transshipment' and d['type'] == 'hub':
+        X3_cost = hub_cost
+
+    score = ASC + A1*X1_travtime + A2 * X2_length + A3*X3_cost
+
+    return score
