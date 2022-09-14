@@ -15,6 +15,8 @@ from argparse import (ArgumentParser, RawTextHelpFormatter,
 from dotenv import dotenv_values
 
 from .utils import parse_env_values
+from .proc import run_model
+
 
 LOG_FILE_MAX_BYTES = 50e6
 LOG_MSG_FMT = "%(asctime)s %(levelname)-8s %(name)s \
@@ -135,7 +137,7 @@ def main():
     for key, value in config.items():
         print(f'{key:<30s}: {value}')
 
-    # run_model(config)
+    run_model(config)
 
 
 if __name__ == "__main__":
