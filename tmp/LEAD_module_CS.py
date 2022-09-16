@@ -13,13 +13,13 @@ import os
 
 def actually_run_module(args):
     # -------------------- Define datapaths -----------------------------------
-            
+
     root    = args[0]
     varDict = args[1]
-            
+
     if root != '':
         root.progressBar['value'] = 0
-            
+
     # Define folders relative to current datapath
     datapath        = varDict['DATAPATH']
     VoT             = varDict['VOT']
@@ -28,11 +28,11 @@ def actually_run_module(args):
     droptime_pt     = varDict['PARCELS_DROPTIME_PT']
     CS_willingness  = varDict['CS_WILLINGNESS']
     Pax_Trips      = varDict['Pax_Trips']
-    
-    
-    
-    
-    
+
+
+
+
+
     skims = {'time': {}, 'dist': {}, }
     skims['time']['path'] = varDict['SKIMTIME']
     skims['dist']['path'] = varDict['SKIMDISTANCE']
@@ -47,39 +47,39 @@ def actually_run_module(args):
     skimTravTime = skims['time']; skimDist = skims['dist']
     del skims, skim, i
     timeFac = 3600
-    
+
     skimTime = {}
     skimTime['car'] = skimTravTime
     skimTime['car_passenger'] = skimTravTime
     skimTime['walk'] = (skimDist / 1000 / 5 * 3600).astype(int)
     skimTime['bike'] = (skimDist / 1000 / 12 * 3600).astype(int)
     skimTime['pt'] = skimTravTime * 2 #https://doi.org/10.1038/s41598-020-61077-0, http://dx.doi.org/10.1016/j.jtrangeo.2013.06.011
-    
+
     zones = read_shape(varDict['ZONES'])
     zones.index = zones['AREANR']
     nZones = len(zones)
-    
+
     zoneDict  = dict(np.transpose(np.vstack( (np.arange(1,nZones+1), zones['AREANR']) )))
     zoneDict  = {int(a):int(b) for a,b in zoneDict.items()}
-    invZoneDict = dict((v, k) for k, v in zoneDict.items()) 
-        
+    invZoneDict = dict((v, k) for k, v in zoneDict.items())
+
     #%% Generate bringers supply
     def generate_CS_supply(trips, CS_willingness): # CS_willingness is the willingness to be a bringer
         trips['CS_willing'] = np.random.uniform(0,1,len(trips)) < CS_willingness
         trips['CS_eligible'] = (trips['CS_willing'])
-        
+
         tripsCS = trips[(trips['CS_eligible'] == True)]
         tripsCS = tripsCS.drop(['CS_willing', 'CS_eligible' ],axis=1)
-        
+
         #transform the lyon data into The Hague data
         for i, column in enumerate(['origin_x', 'destination_x', 'origin_y', 'destination_y']):
             tripsCS[column] = (tripsCS[column]-min(tripsCS[column])) / (max(tripsCS[column]) - min(tripsCS[column]))
             if i < 2: tripsCS[column] = tripsCS[column] * (max(zones['X'])-min(zones['X'])) + min(zones['X'])
             if i > 1: tripsCS[column] = tripsCS[column] * (max(zones['Y'])-min(zones['Y'])) + min(zones['Y'])
-        
+
         coordinates = [((zones.loc[zone, 'X'], zones.loc[zone, 'Y'])) for zone in zones.index]
         tree = spatial.KDTree(coordinates)
-        
+
         tripsCS['O_zone'], tripsCS['D_zone'], tripsCS['travtime'], tripsCS['travdist'], tripsCS['municipality_orig'], tripsCS['municipality_dest'] = np.nan, np.nan, np.nan, np.nan, np.nan, np.nan
         trips_array = np.array(tripsCS)
         for traveller in trips_array:
@@ -92,19 +92,19 @@ def actually_run_module(args):
             traveller[20] = zones.loc[traveller[16], 'GEMEENTEN']
         tripsCS = pd.DataFrame(trips_array, columns=tripsCS.columns)
         return tripsCS
-    
-    
-    # TO DO Has to change this for the HAGUE trips 
+
+
+    # TO DO Has to change this for the HAGUE trips
     trips = pd.read_csv(Pax_Trips, sep = ';', )
     global tripsCS
     tripsCS = generate_CS_supply(trips, CS_willingness)
     tripsCS['shipping'] = np.nan
     # print('test')
-    
+
     DirCS_Parcels = f"{varDict['OUTPUTFOLDER']}Parcels_CS_{varDict['LABEL']}.csv"
     parcels = pd.read_csv(DirCS_Parcels)
     parcels["traveller"], parcels["detour"], parcels["compensation"] = '', np.nan, np.nan
-    
+
     #%% Matching of parcels and travellers
     def get_compensation(dist_parcel_trip): # This could potentially have more vars!
         #compensation = math.log( (dist_parcel_trip) + 2)
@@ -118,10 +118,10 @@ def actually_run_module(args):
         parc_dest_muni = zones.loc[parc_dest, 'GEMEENTEN']
         parc_dist = get_distance(parc_orig, parc_dest, skimDist, nSkimZones)   # skimDist[(parc_orig-1),(parc_dest-1)] / 1000
         compensation = get_compensation(parc_dist)
-        
+
         Minimizing_dict = {}
-        filtered_trips = tripsCS[((parc_dist / tripsCS['travdist'] < 1) & 
-                                  (tripsCS['shipping'].isnull()) & 
+        filtered_trips = tripsCS[((parc_dist / tripsCS['travdist'] < 1) &
+                                  (tripsCS['shipping'].isnull()) &
                                   ((parc_orig_muni == tripsCS['municipality_orig']) | (parc_orig_muni == tripsCS['municipality_dest']) |
                                    (parc_dest_muni == tripsCS['municipality_orig']) | (parc_dest_muni == tripsCS['municipality_dest'])))]
         for i, traveller in filtered_trips.iterrows():
@@ -134,13 +134,13 @@ def actually_run_module(args):
             if mode in ['car']: CS_pickup_time = droptime_car
             if mode in ['bike', 'car_passenger']: CS_pickup_time = droptime_bike
             if mode in ['walk', 'pt']: CS_pickup_time = droptime_pt
-            
+
             time_traveller_parcel   = get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones, timeFac)
             time_parcel_trip        = get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime[mode], nSkimZones, timeFac)
             time_customer_end       = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime[mode], nSkimZones, timeFac)
             CS_trip_time = (time_traveller_parcel + time_parcel_trip + time_customer_end)
             CS_detour_time = CS_trip_time - trip_time
-            
+
             if ((CS_detour_time + CS_pickup_time * 2)/3600) == 0: CS_detour_time += 1 #prevents /0 eror
             compensation_time =  compensation / ((CS_detour_time + CS_pickup_time * 2)/3600)
             if compensation_time > VoT:
@@ -153,22 +153,22 @@ def actually_run_module(args):
                     CS_Min = (-1)* CS_surplus  # The -1 is to minimize the surplus
                 elif varDict ['CS_BringerScore'] == 'Min_Detour':
                     CS_Min = round(CS_trip_dist - trip_dist, 5)
-                
+
                 Minimizing_dict[f"{traveller['person_id']}_{traveller['person_trip_id']}"] = CS_Min
-            
+
         if Minimizing_dict:  # The traveler that has the lowest detour gets the parcel
             traveller = min(Minimizing_dict, key=Minimizing_dict.get)
             parcels.loc[index, 'traveller'] = traveller
             parcels.loc[index, 'detour'] = Minimizing_dict[traveller]
             parcels.loc[index, 'compensation'] = compensation
-            
+
             person, trip = traveller.split('_')
             person = int(person); trip = int(trip)
             # print(traveller)
             tripsCS.loc[((tripsCS['person_id'] == person) & (tripsCS['person_trip_id'] == trip)), 'shipping'] = parcels.loc[index, 'Parcel_ID'] # Are we saving the trips CS?
 
     parcels.to_csv(f"{varDict['OUTPUTFOLDER']}Parcels_CS_matched_{varDict['LABEL']}.csv", index=False)
-    
+
 #%% Run module on itself
 if __name__ == '__main__':
     cwd = os.getcwd()
@@ -182,14 +182,14 @@ if __name__ == '__main__':
         varDict['INPUTFOLDER']          = f'{datapath}Input/Mass-GT/'
         varDict['OUTPUTFOLDER']         = f'{datapath}Output/Mass-GT/'
         varDict['PARAMFOLDER']	        = f'{datapath}Parameters/Mass-GT/'
-        
+
         varDict['SKIMTIME']             = varDict['INPUTFOLDER'] + 'skimTijd_new_REF.mtx'
         varDict['SKIMDISTANCE']         = varDict['INPUTFOLDER'] + 'skimAfstand_new_REF.mtx'
         varDict['ZONES']                = varDict['INPUTFOLDER'] + 'Zones_v4.shp'
         varDict['SEGS']                 = varDict['INPUTFOLDER'] + 'SEGS2020.csv'
         varDict['PARCELNODES']          = varDict['INPUTFOLDER'] + 'parcelNodes_v2.shp'
         varDict['CEP_SHARES']           = varDict['INPUTFOLDER'] + 'CEPshares.csv'
-        
+
         '''FOR CROWDSHIPPING MATCHING MODULE'''
         varDict['CS_WILLINGNESS']       = 0.2
         varDict['VOT']                  = 9.00
@@ -197,9 +197,9 @@ if __name__ == '__main__':
         varDict['PARCELS_DROPTIME_BIKE']= 60 #and car passenger
         varDict['PARCELS_DROPTIME_PT']  = 0 #and walk
         varDict['TRIPSPATH']            = f'{datapath}Drive Lyon/'
-        
+
         args = ['', varDict]
         return args, varDict
-        
+
     args, varDict = generate_args()
     actually_run_module(args)
