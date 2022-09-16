@@ -14,7 +14,7 @@ from .cs import cs_matching
 from .utils import read_shape, read_mtx, k_shortest_paths, pairwise, calc_score
 
 
-logger = getLogger("parcelgen.proc")
+logger = getLogger("parcelmarket.proc")
 
 
 def run_model(cfg: dict) -> list:
@@ -232,8 +232,9 @@ def run_model(cfg: dict) -> list:
 
     # Module 3: Network allocation
     logger.info('Perform network allocation...')
-    ASC, A1, A2, A3 = cfg['SCORE_ALPHAS']
-    tour_based_cost, consolidated_cost, hub_cost, cs_trans_cost ,interCEP_cost = cfg['SCORE_COSTS']
+    # ASC, A1, A2, A3 = cfg['SCORE_ALPHAS']
+    # tour_based_cost, consolidated_cost, \
+    #   hub_cost, cs_trans_cost ,interCEP_cost = cfg['SCORE_COSTS']
 
     parcels_hyperconnected['path'] = type('object')
     for index, parcel in parcels_hyperconnected.iterrows():
@@ -245,14 +246,16 @@ def run_model(cfg: dict) -> list:
         if parcel['CS_eligible'] == True:
             allowed_cs_nodes = CS_transshipment_nodes + [f'{orig}_CS', f'{dest}_CS']
 
-        globals() ['allowed_cs_nodes'] = allowed_cs_nodes
-
         # FIXME - TypeError: <lambda>() missing 7 required positional arguments:
         # # 'orig', 'dest', 'd', 'acsn', 'hn', 'p', and 'conf'
         shortest_paths = k_shortest_paths(
             G, orig, dest, k,
-            weight = lambda g, u, v, orig, dest, d, acsn, hn, p, conf: calc_score(g, u, v, orig, dest, g[u][v], acsn, hn, p, conf)
+            weight = lambda u, v, d: calc_score(G, u, v, orig, dest, G[u][v],
+                                                allowed_cs_nodes, hub_nodes,
+                                                parcel, cfg)
         )
+        # print(f"SHORTEST PATHS: {shortest_paths}")
+
         for path in shortest_paths:
             weightSum = 0
             for pair in pairwise(path):
@@ -301,15 +304,14 @@ def run_model(cfg: dict) -> list:
         parcel_trips_CS_unmatched_pickup = pd.DataFrame()
         parcel_trips_CS_unmatched_delivery = pd.DataFrame()
         if not parcel_trips_CS.empty:
-            out = f"{cfg['OUTPUTFOLDER']}Parcels_CS_{cfg['LABEL']}.csv"
             # write those trips to csv (default location of parcel demand for scheduling module)
-            parcel_trips_CS.to_csv(out, index=False)
+            parcel_trips_CS.to_csv(join(cfg["OUTDIR"], "Parcels_CS.csv"), index=False)
 
             # load right module
-            cs_matching(nSkimZones, skimTravTime, skimDist, zones, zoneDict, invZoneDict, cfg)
+            cs_matching(zones, zoneDict, invZoneDict, cfg)
             # cs_matching(args) #run module
             # load module output to dataframe
-            parcel_trips_CS = pd.read_csv(join([cfg["OUTDIR"], "Parcels_CS_matched.csv"]))
+            parcel_trips_CS = pd.read_csv(join(cfg["OUTDIR"], "Parcels_CS_matched.csv"))
 
             # See what happens when there are no unmatched
             # get unmatched parcels
@@ -380,13 +382,14 @@ def run_model(cfg: dict) -> list:
             parcel_trips_HS_delivery.at[index, 'DepotNumber'] = \
                 parcelNodes[((parcelNodes['CEP'] == parcel['CEP']) \
                             & (parcelNodes['AREANR'] == parcel['O_zone']))]['id']
-        except:
+        # FIXME: just KeyError ?
+        except Exception:
             # Get first node as an exception
             parcel_trips_HS_delivery.at[index, 'DepotNumber'] = \
                 parcelNodes[((parcelNodes['CEP'] == parcel['CEP']))]['id'].iloc[0]
             error +=1
     # output these parcels to default location for scheduling
-    parcel_trips_HS_delivery.to_csv(join([cfg["OUTDIR"], "ParcelDemand_HS_delivery.csv"]),
+    parcel_trips_HS_delivery.to_csv(join(cfg["OUTDIR"], "ParcelDemand_HS_delivery.csv"),
                                     index=False)
 
     # pick the first part of the parcel trip
@@ -449,7 +452,8 @@ def run_model(cfg: dict) -> list:
                 ((parcelNodes['CEP'] == parcel['CEP']) \
                     & (parcelNodes['AREANR'] == parcel['D_zone']))
             ]['id']
-        except:
+        # FIXME: just KeyError ?
+        except Exception:
             # add depotnumer to each parcel
             parcel_trips_HS_pickup.at[index, 'DepotNumber'] = parcelNodes[
                 ((parcelNodes['CEP'] == parcel['CEP']) )
@@ -457,8 +461,8 @@ def run_model(cfg: dict) -> list:
             error2 += 1
 
     # output these parcels to default location for scheduling
-    parcel_trips_HS_pickup.to_csv(join([cfg["OUTDIR"], "ParcelDemand_HS_pickup.csv"]), index=False)
-    parcel_trips.to_csv(join([cfg["OUTDIR"], "ParcelDemand_ParcelTrips.csv"]), index=False)
+    parcel_trips_HS_pickup.to_csv(join(cfg["OUTDIR"], "ParcelDemand_HS_pickup.csv"), index=False)
+    parcel_trips.to_csv(join(cfg["OUTDIR"], "ParcelDemand_ParcelTrips.csv"), index=False)
 
     # KPIs
     kpis = {}
@@ -473,10 +477,13 @@ def run_model(cfg: dict) -> list:
             kpis['crowdshipping_detour_sum'] = int(parcel_trips_CS['detour'].sum())
             kpis['crowdshipping_detour_avg'] = round(parcel_trips_CS['detour'].mean(), 2)
             kpis['crowdshipping_compensation'] = round(parcel_trips_CS['compensation'].mean(), 2)
+
     logger.info('KPIs:')
     for key, value in kpis.items():
         print(f'{key:<30s}: {value}')
-    dump(kpis, join([cfg["OUTDIR"], "kpis.json"]))
+
+    with open(join(cfg["OUTDIR"], "kpis.json"), "w", encoding="utf-8") as fp:
+        dump(kpis, fp, indent=4)
 
     # Finalize
     totaltime = round(time() - start_time, 2)
