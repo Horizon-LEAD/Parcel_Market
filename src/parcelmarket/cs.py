@@ -7,14 +7,14 @@ from os.path import join
 import numpy as np
 import pandas as pd
 from scipy import spatial
-from .utils import get_traveltime, get_distance, get_compensation
+from .utils import get_traveltime, get_distance, get_compensation, read_mtx
 
 
 logger = getLogger("parcelmarket.cs")
 
 
 def generate_cs_supply(
-    trips, CS_willingness,
+    trips: pd.DataFrame, CS_willingness,
     zones, zoneDict: dict, invZoneDict: dict,
     nSkimZones, skimTime, skimDist,
     timeFac
@@ -42,11 +42,11 @@ def generate_cs_supply(
     :return: _description_
     :rtype: pd.DataFrame
     """
-    trips['CS_willing'] = np.random.uniform(0,1,len(trips)) < CS_willingness
+    trips['CS_willing'] = np.random.uniform(0, 1, len(trips)) < CS_willingness
     trips['CS_eligible'] = (trips['CS_willing'])
 
-    tripsCS = trips[(trips['CS_eligible'] is True)]
-    tripsCS = tripsCS.drop(['CS_willing', 'CS_eligible' ], axis=1)
+    tripsCS = trips[(trips['CS_eligible'] == True)]
+    tripsCS = tripsCS.drop(['CS_willing', 'CS_eligible'], axis=1)
 
     #transform the lyon data into The Hague data
     for i, column in enumerate(['origin_x', 'destination_x', 'origin_y', 'destination_y']):
@@ -82,7 +82,7 @@ def generate_cs_supply(
     return tripsCS
 
 
-def cs_matching(nSkimZones, skimTravTime, skimDist, zones, zoneDict, invZoneDict, cfg: dict) -> None:
+def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
     """_summary_
 
     :param skimTravTime: _description_
@@ -95,6 +95,24 @@ def cs_matching(nSkimZones, skimTravTime, skimDist, zones, zoneDict, invZoneDict
     :type zonesDict: _type_
     """
     timeFac = 3600
+
+    skims = { 'time': {}, 'dist': {} }
+    skims['time']['path'] = cfg['SKIMTIME']
+    skims['dist']['path'] = cfg['SKIMDISTANCE']
+    for skim in skims:
+        skims[skim] = read_mtx(skims[skim]['path'])
+        nSkimZones = int(len(skims[skim])**0.5)
+        skims[skim] = skims[skim].reshape((nSkimZones, nSkimZones))
+        if skim == 'time':
+            # data deficiency
+            skims[skim][6483] = skims[skim][:, 6483] = 5000
+        # add traveltimes to internal trips
+        for i in range(nSkimZones):
+            skims[skim][i, i] = 0.7 * np.min(skims[skim][i, skims[skim][i, :] > 0])
+        skims[skim] = skims[skim].flatten()
+    skimTravTime = skims['time']
+    skimDist = skims['dist']
+
     skimTime = {}
     skimTime['car'] = skimTravTime
     skimTime['car_passenger'] = skimTravTime
@@ -113,7 +131,7 @@ def cs_matching(nSkimZones, skimTravTime, skimDist, zones, zoneDict, invZoneDict
     tripsCS['shipping'] = np.nan
 
     # DirCS_Parcels =  f"{varDict['OUTPUTFOLDER']}Parcels_CS_{varDict['LABEL']}.csv"
-    DirCS_Parcels = join([cfg["OUTDIR"], "Parcels_CS.csv"])
+    DirCS_Parcels = join(cfg["OUTDIR"], "Parcels_CS.csv")
     parcels = pd.read_csv(DirCS_Parcels)
     parcels["traveller"], parcels["detour"], parcels["compensation"] = '', np.nan, np.nan
 
@@ -198,6 +216,6 @@ def cs_matching(nSkimZones, skimTravTime, skimDist, zones, zoneDict, invZoneDict
                         (tripsCS['person_trip_id'] == trip)), 'shipping'] = \
                             parcels.loc[index, 'Parcel_ID']
 
-    parcels.to_csv(join([cfg["OUTDIR"], "Parcels_CS_matched.csv"]), index=False)
+    parcels.to_csv(join(cfg["OUTDIR"], "Parcels_CS_matched.csv"), index=False)
 
     return
