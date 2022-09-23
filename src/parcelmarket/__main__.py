@@ -14,7 +14,7 @@ from argparse import (ArgumentParser, RawTextHelpFormatter,
 
 from dotenv import dotenv_values
 
-from .utils import parse_env_values
+from .envctl import parse_env_values
 from .proc import run_model
 
 
