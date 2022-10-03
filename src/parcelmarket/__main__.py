@@ -81,7 +81,7 @@ def main():
     parser.add_argument('SKIMTIME', type=strfile, help='The path of the time skim matrix (mtx)')
     parser.add_argument('SKIMDISTANCE', type=strfile,
                         help='The path of the distance skim matrix (mtx)')
-    parser.add_argument('ZONES', type=strfile, help='The path of the area shape file (shp)')
+    parser.add_argument('ZONES', type=strfile, help='The path of the area shape file (zip)')
     parser.add_argument('SEGS', type=strfile, help='The path of the socioeconomics data file (csv)')
     parser.add_argument('PARCELNODES', type=strfile,
                         help='The path of the parcel nodes file (shp)')

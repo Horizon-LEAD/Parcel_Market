@@ -1,0 +1,819 @@
+{
+    "name": "Parcel Market",
+    "description":"The Parcel Market model calculates [...].",
+    "version": "1.0.0",
+    "status":"draft",
+    "types": [
+        {"name": "Network Model", "description":"Network models deal with routing and allocation to road networks."}
+    ],
+    "dockerImage":"registry.gitlab.com/inlecom/lead/models/parcel-market:latest",
+    "url": "https://github.com/Horizon-LEAD/Parcel_Market",
+    "modelData":  [
+        {
+            "name": "Demand Parcels",
+            "variableName": "demand_parcels",
+            "description": "The path of the parcels demand file.",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "CLI",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "csv",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "Time Skim Matrix",
+            "variableName": "tsmtx",
+            "description": "Matrix that contains the time (in seconds) between each pair OD.",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "CLI",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "mtx",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "Distance Skim Matrix",
+            "variableName": "dsmtx",
+            "description": "Matrix that contains the distance (in kilometres) between each pair OD.",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "CLI",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "mtx",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "Area",
+            "variableName": "area",
+            "description": "Shapefile of the city. The areas delimited should be linked with the areas in the Socioeconomic Data file.",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "CLI",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "zip",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "Socioeconomic Data",
+            "variableName": "sedata",
+            "description": "CSV with socioeconomic data per area within the city. The mandatory fields are \"zone\"; \"1: woningen\"; \"9: arbeidspl_totaal\"",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "CLI",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "csv",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "Parcel Nodes",
+            "variableName": "parcel_nodes",
+            "description": "Shape with the location of the distribution nodes of the couriers.",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "CLI",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "zip",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "Trips",
+            "variableName": "trips",
+            "description": "Trips file (csv).",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "CLI",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "csv",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "LABEL",
+            "variableName": "LABEL",
+            "description": "Label",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "string",
+                "description": "",
+                "dataType": "string",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "CS_BringerScore",
+            "variableName": "CS_BringerScore",
+            "description": "CS_BringerScore",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "string",
+                "description": "",
+                "dataType": "string",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "CROWDSHIPPING_NETWORK",
+            "variableName": "CROWDSHIPPING_NETWORK",
+            "description": "CROWDSHIPPING_NETWORK",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "boolean",
+                "description": "",
+                "dataType": "boolean",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "COMBINE_DELIVERY_PICKUP_TOUR",
+            "variableName": "COMBINE_DELIVERY_PICKUP_TOUR",
+            "description": "COMBINE_DELIVERY_PICKUP_TOUR",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "boolean",
+                "description": "",
+                "dataType": "boolean",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "HYPERCONNECTED_NETWORK",
+            "variableName": "HYPERCONNECTED_NETWORK",
+            "description": "HYPERCONNECTED_NETWORK",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "boolean",
+                "description": "",
+                "dataType": "boolean",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "printKPI",
+            "variableName": "printKPI",
+            "description": "printKPI",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "boolean",
+                "description": "",
+                "dataType": "boolean",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "CONSOLIDATED_MAXLOAD",
+            "variableName": "CONSOLIDATED_MAXLOAD",
+            "description": "CONSOLIDATED_MAXLOAD",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "number",
+                "description": "",
+                "dataType": "number",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "CS_WILLINGNESS",
+            "variableName": "CS_WILLINGNESS",
+            "description": "CS_WILLINGNESS",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "number",
+                "description": "",
+                "dataType": "number",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "PARCELS_DROPTIME_CAR",
+            "variableName": "PARCELS_DROPTIME_CAR",
+            "description": "PARCELS_DROPTIME_CAR",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "number",
+                "description": "",
+                "dataType": "number",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "PARCELS_DROPTIME_BIKE",
+            "variableName": "PARCELS_DROPTIME_BIKE",
+            "description": "PARCELS_DROPTIME_BIKE",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "number",
+                "description": "",
+                "dataType": "number",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "PARCELS_DROPTIME_PT",
+            "variableName": "PARCELS_DROPTIME_PT",
+            "description": "PARCELS_DROPTIME_PT",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "number",
+                "description": "",
+                "dataType": "number",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "VOT",
+            "variableName": "VOT",
+            "description": "VOT",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "number",
+                "description": "",
+                "dataType": "number",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "Gemeenten_studyarea",
+            "variableName": "Gemeenten_studyarea",
+            "description": "Gemeenten_studyarea",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "array-string",
+                "description": "",
+                "dataType": "array-string",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "Gemeenten_CS",
+            "variableName": "Gemeenten_CS",
+            "description": "Gemeenten_CS",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "array-string",
+                "description": "",
+                "dataType": "array-string",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "hub_zones",
+            "variableName": "hub_zones",
+            "description": "hub_zones",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "array-string",
+                "description": "",
+                "dataType": "array-string",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "parcelLockers_zones",
+            "variableName": "parcelLockers_zones",
+            "description": "parcelLockers_zones",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "array-string",
+                "description": "",
+                "dataType": "array-string",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "SCORE_ALPHAS",
+            "variableName": "SCORE_ALPHAS",
+            "description": "SCORE_ALPHAS",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "array-number",
+                "description": "",
+                "dataType": "array-number",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "SCORE_COSTS",
+            "variableName": "SCORE_COSTS",
+            "description": "SCORE_COSTS",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "array-number",
+                "description": "",
+                "dataType": "array-number",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "HyperConect",
+            "variableName": "HyperConect",
+            "description": "HyperConect",
+            "isOutput": false,
+            "isOutputDir": false,
+            "isOptional": false,
+            "inputType": "ENV",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "object",
+                "description": "",
+                "dataType": "object",
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "output-directory",
+            "variableName": "OUTDIR",
+            "description": "Output directory",
+            "isOutput": false,
+            "isOutputDir": true,
+            "isOptional": false,
+            "inputType": "CLI",
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "string",
+                "description": "",
+                "dataType": "string",
+                "extension": null,
+                "validators": [
+                    {
+                        "name": "required",
+                        "description": "required",
+                        "validatorType": "required",
+                        "value": ""
+                    }
+                ],
+                "objectKeys": []
+            }
+        },
+        {
+            "name": "Parcel Demand HS delivery",
+            "variableName": "Parcel_Demand_HS_delivery",
+            "description": "Parcel Demand [...].",
+            "isOutput": true,
+            "isOptional": false,
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "csv",
+                "validators": [],
+                "objectKeys": []
+            },
+            "fromRow": null,
+            "toRow": null,
+            "column": null,
+            "refModelData": null,
+            "jsonPath": null,
+            "sheet": null,
+            "delimiter": null,
+            "qualifier": null,
+            "dateFormat": null
+        },
+        {
+            "name": "Parcel Demand HS pickup",
+            "variableName": "Parcel_Demand_HS_pickup",
+            "description": "Parcel Demand [...].",
+            "isOutput": true,
+            "isOptional": false,
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "csv",
+                "validators": [],
+                "objectKeys": []
+            },
+            "fromRow": null,
+            "toRow": null,
+            "column": null,
+            "refModelData": null,
+            "jsonPath": null,
+            "sheet": null,
+            "delimiter": null,
+            "qualifier": null,
+            "dateFormat": null
+        },
+        {
+            "name": "Parcel Demand Trips",
+            "variableName": "Parcel_Demand_ParcelTrips",
+            "description": "Parcel Demand [...].",
+            "isOutput": true,
+            "isOptional": false,
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "csv",
+                "validators": [],
+                "objectKeys": []
+            },
+            "fromRow": null,
+            "toRow": null,
+            "column": null,
+            "refModelData": null,
+            "jsonPath": null,
+            "sheet": null,
+            "delimiter": null,
+            "qualifier": null,
+            "dateFormat": null
+        },
+        {
+            "name": "Parcel Demand CS",
+            "variableName": "Parcel_Demand_CS",
+            "description": "Parcel Demand [...].",
+            "isOutput": true,
+            "isOptional": false,
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "csv",
+                "validators": [],
+                "objectKeys": []
+            },
+            "fromRow": null,
+            "toRow": null,
+            "column": null,
+            "refModelData": null,
+            "jsonPath": null,
+            "sheet": null,
+            "delimiter": null,
+            "qualifier": null,
+            "dateFormat": null
+        },
+        {
+            "name": "Parcel Demand CS Matched",
+            "variableName": "Parcel_Demand_CS_matched",
+            "description": "Parcel Demand [...].",
+            "isOutput": true,
+            "isOptional": false,
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "csv",
+                "validators": [],
+                "objectKeys": []
+            },
+            "fromRow": null,
+            "toRow": null,
+            "column": null,
+            "refModelData": null,
+            "jsonPath": null,
+            "sheet": null,
+            "delimiter": null,
+            "qualifier": null,
+            "dateFormat": null
+        },
+        {
+            "name": "Key Performance Indicators",
+            "variableName": "kpis",
+            "description": "File containing key KPIs estimated in the model.",
+            "isOutput": true,
+            "isOptional": false,
+            "chartType": "NONE",
+            "modelDataType": {
+                "name": "file",
+                "description": "",
+                "dataType": "file",
+                "extension": "json",
+                "validators": [],
+                "objectKeys": []
+            },
+            "fromRow": null,
+            "toRow": null,
+            "column": null,
+            "refModelData": null,
+            "jsonPath": null,
+            "sheet": null,
+            "delimiter": null,
+            "qualifier": null,
+            "dateFormat": null
+        }
+    ]
+}
