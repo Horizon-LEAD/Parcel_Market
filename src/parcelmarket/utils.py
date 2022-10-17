@@ -1,12 +1,12 @@
 """Utilities
 """
-
-from logging import getLogger
 import array
-import os.path
 import math
-from json import loads
+from logging import getLogger
+from os.path import getsize, dirname
 from itertools import islice, tee
+from posixpath import splitext
+from zipfile import ZipFile
 
 import pandas as pd
 import numpy as np
@@ -65,7 +65,7 @@ def read_mtx(mtxfile):
 
     mtx_data = array.array('i')
     with open(mtxfile, 'rb') as fp_mtx:
-        mtx_data.fromfile(fp_mtx, os.path.getsize(mtxfile) // mtx_data.itemsize)
+        mtx_data.fromfile(fp_mtx, getsize(mtxfile) // mtx_data.itemsize)
 
     # The number of zones is in the first byte
     mtx_data = np.array(mtx_data, dtype=int)[1:]
@@ -73,11 +73,15 @@ def read_mtx(mtxfile):
     return mtx_data
 
 
-def read_shape(shape_path, encoding='latin1', return_geometry=False):
+def read_shape(fpath, encoding='latin1', return_geometry=False):
     '''
     Read the shapefile with zones (using pyshp --> import shapefile as shp)
     '''
     # Load the shape
+    with ZipFile(fpath) as z:
+        z.extractall(path=dirname(fpath))
+
+    shape_path = splitext(fpath)[0] + '.shp'
     sf_reader = shp.Reader(shape_path, encoding=encoding)
     records = sf_reader.records()
     if return_geometry:

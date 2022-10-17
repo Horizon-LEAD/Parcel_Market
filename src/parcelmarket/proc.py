@@ -4,7 +4,7 @@
 from logging import getLogger
 from time import time
 from os.path import join
-from json import dump
+from json import dump, dumps
 
 import numpy as np
 import pandas as pd
@@ -478,10 +478,7 @@ def run_model(cfg: dict) -> list:
             kpis['crowdshipping_detour_avg'] = round(parcel_trips_CS['detour'].mean(), 2)
             kpis['crowdshipping_compensation'] = round(parcel_trips_CS['compensation'].mean(), 2)
 
-    logger.info('KPIs:')
-    for key, value in kpis.items():
-        print(f'{key:<30s}: {value}')
-
+    logger.info("KPIs:\n%s", dumps(kpis, indent = 2))
     with open(join(cfg["OUTDIR"], "kpis.json"), "w", encoding="utf-8") as fp:
         dump(kpis, fp, indent=4)
 

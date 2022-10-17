@@ -87,23 +87,26 @@ HyperConect={"DHL": [] , "DPD": ["FedEx", "GLS",  "UPS"] , "FedEx": ["DPD",  "GL
 
 ### Examples
 
-In the following examples, it is assumed that the user has placed all necessary input files in the `sample-data/inputs` directory while making sure that the `sample-data/outputs` directory exists.
+In the following examples, it is assumed that the user's terminal is at the project's root directory. Also that all the necessary input files are located in the `sample-data/inputs` directory and that the `sample-data/outputs` directory exists.
+
+The user can then execute the model by running the executable.
 
 ```
 parcel-market -vvv --env .env \
     sample-data/input/Demand_parcels_fulfilment_test.csv \
     sample-data/input/skimTijd_new_REF.mtx \
     sample-data/input/skimAfstand_new_REF.mtx \
-    sample-data/input/Zones_v4.shp \
+    sample-data/input/Zones_v4.zip \
     sample-data/input/SEGS2020.csv \
-    sample-data/input/parcelNodes_v2.shp \
+    sample-data/input/parcelNodes_v2.zip \
     sample-data/input/trips.csv \
     sample-data/output/
 ```
 
-Of course one can also replace the executables name (`parcel-market`) in case `pip install -e .` is not executed with `python -m src.parcelmarket` provided that the current working directory of the shell is at the project's root directory.
+If the package installation has been omitted, the model can of course also be run with `python -m src.parcelmarket.__main__ <args>`.
 
-Similarly, from the project's root directory one can run the model through the docker image:
+Finally, the model can be executed with `docker run`:
+
 ```
 docker run --rm \
   -v $PWD/sample-data/input:/data/input \
@@ -113,9 +116,9 @@ docker run --rm \
   /data/input/Demand_parcels_fulfilment_test.csv \
   /data/input/skimTijd_new_REF.mtx \
   /data/input/skimAfstand_new_REF.mtx \
-  /data/input/Zones_v4.shp \
+  /data/input/Zones_v4.zip \
   /data/input/SEGS2020.csv \
-  /data/input/parcelNodes_v2.shp \
+  /data/input/parcelNodes_v2.zip \
   /data/input/trips.csv \
   /data/output/
 ```
