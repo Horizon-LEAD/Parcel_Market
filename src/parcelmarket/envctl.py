@@ -8,16 +8,22 @@ from json import loads, JSONDecodeError
 BOOL_VALUES = ('true', 't', 'on', '1', 'false', 'f', 'off', '0', "")
 BOOL_TRUE_VALUES = ('true', 't', 'on', '1')
 
-PARAMS_STR = ["CS_BringerScore"]
+PARAMS_STR = ["CS_BringerScore","CS_ALLOCATION"]
 PARAMS_BOOL = ["CROWDSHIPPING_NETWORK", "COMBINE_DELIVERY_PICKUP_TOUR",
                "HYPERCONNECTED_NETWORK", "printKPI"]
 PARAMS_NUM = ["CONSOLIDATED_MAXLOAD", "CS_WILLINGNESS", "PARCELS_DROPTIME_CAR",
-              "PARCELS_DROPTIME_BIKE", "PARCELS_DROPTIME_PT", "VOT"]
+              "PARCELS_DROPTIME_BIKE", "PARCELS_DROPTIME_PT", "VOT","PlatformComission",
+              "CS_Costs","TradCost","Car_CostKM",
+              'CarSpeed','WalkBikeSpeed','CarCO2',
+              "CS_MaxParcelDistance"]
 PARAMS_LIST_STR = ["Gemeenten_studyarea", "Gemeenten_CS",
                    "hub_zones", "parcelLockers_zones"]
 PARAMS_LIST_BOOL = []
-PARAMS_LIST_NUM = ["SCORE_ALPHAS", "SCORE_COSTS"]
-PARAMS_JSON = ["HyperConect"]
+PARAMS_LIST_NUM = ["SCORE_ALPHAS", "SCORE_COSTS","CS_COMPENSATION",
+                   "CS_Willingess2Send","CS_BaseBringerWillingess",
+                   "CS_BringerUtility"]
+PARAMS_JSON = ["HyperConect","ParcelLockersfulfilment",
+               "CS_BringerFilter","CS_UtilityFunction"]
 
 logger = getLogger("parcelmarket.envctl")
 

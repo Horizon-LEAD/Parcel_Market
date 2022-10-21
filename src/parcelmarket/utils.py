@@ -194,9 +194,114 @@ def pairwise(iterable):
     return zip(a, b)
 
 
-def get_compensation(dist_parcel_trip):
-    return math.log( (dist_parcel_trip) + 2)
+def get_compensation(dist_parcel_trip,cfg):
+    
+    """
+    
+    """
+    Coeff = cfg["CS_COMPENSATION"]
+    Comp = Coeff[0] + Coeff[1] * dist_parcel_trip + Coeff[2] * dist_parcel_trip^2 + math.log( (Coeff[3] * dist_parcel_trip) + 1)
+    
+    return Comp
 
+def get_WillingnessToSend(cfg,Cost,TradCost,deterministic=1):
+    
+    """
+    
+    """
+    Coeff = cfg["CS_Willingess2Send"]
+    Will = Coeff[0] + Coeff[1]  * (Cost-TradCost)
+    if deterministic == 1:
+         Will += np.random.gumbel()
+    
+    return Will
+
+def get_BaseWillforBring(cfg, unique_id):
+    
+    """
+    
+    """
+    Coeff = cfg["CS_BaseBringerWillingess"]
+    Will = Coeff[0] + Coeff[1] *  np.random.normal(0,1) 	
+    Prob = 1/(1+np.exp(-Will))
+    return Prob
+
+def generate_Utility (UtilityFunct, variables,deterministic=1):  # TODO: How to add the variables from the columns
+    '''
+    UtilityFunct : Dictionary
+    '''
+     
+     try:
+         Utility =UtilityFunct["ASC"]
+     except:
+         Utility = 0
+     
+     for key,val in variables.items():
+             exec(key + '=val')
+             Utility+=val * UtilityFunct[str(key)]
+         
+     # Utility = eval(UtilityFunct)
+     
+     if deterministic == 1:
+         Utility += np.random.gumbel()
+     
+     
+     return Utility 
+ 
+    
+ 
+def BringerProb2Bring(Cost,Time,cfg):
+    
+    """
+    
+    """
+    Coeff = cfg["CS_BringerUtility"]
+    Util = Coeff[0] + Coeff[1] *  Cost + Coeff[2] *  Time
+    Prob = 1/(1+np.exp(-Util))
+    return Prob
+
+
+
+
+
+
+def getMax (matrix,cols,rows,othermatrix =np.nan, remove =1):  # If I do the first line and column as the trip ID or parcel ID, then I can remove the lines! If not, add a key that you remove as well when you remvoe the line!
+    # Remove = 1 is that removes the line --> each person takes only 1 parcel per trip!!    
+    maximum = np.amax(matrix)
+    position = np.where(matrix == maximum)
+    # valueinothermatrix = othermatrix[position][0]
+
+    pair = {rows.iloc[position[0][0]][0]:cols.iloc[position[1][0]][0]}  # This is the result!
+    valueinothermatrix = {rows.iloc[position[0][0]][0]:othermatrix[position][0]}
+
+    matrix = np.delete(matrix,position[1][0],1) # Delete parcel (column) from list
+    othermatrix = np.delete(othermatrix,position[1][0],1) # Delete parcel (column) from list
+    cols = cols.drop(cols.index[position[1][0]]).reset_index(drop=True)
+
+    if remove ==1 : # Delete row
+        matrix = np.delete(matrix,position[0][0],0) # Delete parcel (column) from list
+        othermatrix= np.delete(othermatrix,position[0][0],0) # Delete parcel (column) from list
+        rows= rows.drop(rows.index[position[0][0]]).reset_index(drop=True)
+    else: # Put zeros
+        matrix[position[0],:] = np.zeros(( len(matrix[position[0],:][0] )))    
+    
+    return pair, maximum, matrix,othermatrix,valueinothermatrix, cols,rows
+
+
+# TODO Check this!
+def generate_Utility (UtilityFunct, variables,deterministic=1):  # TODO: How to add the variables from the columns
+ 
+ 
+     for key,val in variables.items():
+             exec(key + '=val')
+         
+     Utility = eval(UtilityFunct)
+     
+     if deterministic == 1:
+         Utility += np.random.gumbel()
+     
+     
+     return Utility 
 
 def calc_score(
     G, u, v, orig, dest,
@@ -263,7 +368,7 @@ def calc_score(
         X3_cost = hub_cost
 
     if d['network'] == 'crowdshipping':
-        X3_cost = get_compensation(X2_length)
+        X3_cost = get_compensation(X2_length,cfg)
 
     if d['network'] == 'transshipment' and d['type'] == 'CS':
         X3_cost = cs_trans_cost
