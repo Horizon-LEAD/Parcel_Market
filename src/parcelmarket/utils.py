@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Dec  7 08:44:04 2022
+
+@author: rtapia
+"""
 """Utilities
 """
 import array
@@ -208,15 +214,15 @@ def get_compensation(dist_parcel_trip,cfg):
     
     return Comp
 
-def get_WillingnessToSend(cfg,Cost,TradCost,deterministic=1):
+def get_WillingnessToSend(cfg,Cost,TradCost,deterministic=0):
     
     """
     
     """
     Coeff = cfg["CS_Willingess2Send"]
     Will = Coeff[0] + Coeff[1]  * (Cost-TradCost)
-    if deterministic == 1:
-         Will += np.random.gumbel()
+    if deterministic == 0:
+         Will += np.log(-np.log(np.random.uniform())) - np.log(-np.log(np.random.uniform()))
     
     return Will
 
@@ -230,27 +236,25 @@ def get_BaseWillforBring(cfg, unique_id):
     Prob = 1/(1+np.exp(-Will))
     return Prob
 
-def generate_Utility (UtilityFunct, variables,deterministic=1):  # TODO: How to add the variables from the columns
+def generate_Utility (UtilityFunct, variables,deterministic=0):  # TODO: How to add the variables from the columns
     '''
     UtilityFunct : Dictionary
     '''
      
-     try:
+    try:
          Utility =UtilityFunct["ASC"]
-     except:
+    except:
          Utility = 0
      
-     for key,val in variables.items():
-             exec(key + '=val')
+    for key,val in variables.items():
+             # exec(key + '=val')
              Utility+=val * UtilityFunct[str(key)]
          
-     # Utility = eval(UtilityFunct)
-     
-     if deterministic == 1:
-         Utility += np.random.gumbel()
+    if deterministic == 0:
+         Utility += np.log(-np.log(np.random.uniform()))
      
      
-     return Utility 
+    return Utility 
  
     
  
@@ -293,19 +297,19 @@ def getMax (matrix,cols,rows,othermatrix =np.nan, remove =1):  # If I do the fir
 
 
 # TODO Check this!
-def generate_Utility (UtilityFunct, variables,deterministic=1):  # TODO: How to add the variables from the columns
+# def generate_Utility (UtilityFunct, variables,deterministic=0):  # TODO: How to add the variables from the columns
  
  
-     for key,val in variables.items():
-             exec(key + '=val')
+#      for key,val in variables.items():
+#              exec(key + '=val')
          
-     Utility = eval(UtilityFunct)
+#      Utility = eval(UtilityFunct)
      
-     if deterministic == 1:
-         Utility += np.random.gumbel()
+#      if deterministic == 0:
+#          Utility += np.log(-np.log(np.random.uniform()))
      
      
-     return Utility 
+#      return Utility 
 
 def calc_score(
     G, u, v, orig, dest,
@@ -329,41 +333,51 @@ def calc_score(
     X2_length = d['length'] / 1000          # Distance in km
 
     ASC, A1, A2, A3 = cfg['SCORE_ALPHAS']
-    tour_based_cost, consolidated_cost, hub_cost, cs_trans_cost, interCEP_cost = cfg['SCORE_COSTS']
-
+    tour_based_cost, consolidated_cost, hub_cost, cs_trans_cost, interCEP_cost,interCEP_pickup = cfg['SCORE_COSTS']
+    X3_costPup=0
+    X3_cost =0
     if d['network'] == 'conventional' and d['type'] in['consolidated']:
         X2_length = X2_length/50
 
-    if u == orig or v == dest:
-        # access and agress links to the network have score of 0
-        return 0
+    if u==orig and d['network'] == 'locker':
+        return 999991
 
+    if v==dest and d['CEP'] != 'locker' and parcel["PL"] !=0:
+        return 999992
+    
+    if not cfg['HYPERCONNECTED_NETWORK']:
+        if u == orig or v == dest: return 0 # access and agress links to the network have score of 0
+        
     # other zones than orig/dest can not be used
     if G.nodes[u]['node_type'] == 'zone' and u not in {orig, dest}:
-        return 99999
+        return 999993
 
-    if d['type'] == 'access-egress':
-        return 0
+
 
     # CS network except for certain nodes can not be used
     if d['network'] == 'crowdshipping' and u not in allowed_cs_nodes:
-        return 99999
+        return 999994
 
     if not cfg['HYPERCONNECTED_NETWORK']:
         # Other conventional carriers can not be used
         if d['network'] == 'conventional' and d['CEP'] != parcel['CEP']:
-            return 99999
+            return 999995
     else:
         if (d['network'] == 'conventional'
             and d['CEP'] != parcel['CEP']
             and d['CEP'] not in cfg["HyperConect"][parcel['CEP']]):
             # only hub nodes may be used (no hub network at CEP depots), one directional only
-            return 99999
+            return 999996
         else: X3_cost = interCEP_cost
 
+    if d['network'] != 'crowdshipping':
+        if d['type']== 'access-egress' and parcel['CEP']!=d['CEP'] and u == orig: #for parcel locker, to enforce that the original CEP picks it up.
+              
+            X3_costPup = interCEP_pickup
+            
     # only hub nodes may be used (no hub network at CEP depots)
     if d['network'] == 'conventional' and d['type'] == 'hub' and v not in hub_nodes:
-        return 99999
+        return 999997
     if d['network'] == 'conventional' and d['type'] in['tour-based']:
         X3_cost = tour_based_cost
     if d['network'] == 'conventional' and d['type'] in['consolidated']:
@@ -379,6 +393,5 @@ def calc_score(
     if d['network'] == 'transshipment' and d['type'] == 'hub':
         X3_cost = hub_cost
 
-    score = ASC + A1*X1_travtime + A2 * X2_length + A3*X3_cost
-
+    score = ASC + A1*X1_travtime + A2 * X2_length + A3*(X3_cost +X3_costPup)
     return score

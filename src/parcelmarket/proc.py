@@ -28,6 +28,8 @@ def run_model(cfg: dict) -> list:
 
     start_time = time()
 
+    if type(cfg['Seed'])== int : # if a seed is provided, use it
+        np.random.seed(cfg['Seed'])
     zones = read_shape(cfg['ZONES'])
     zones.index = zones['AREANR']
     nZones = len(zones)
@@ -146,15 +148,17 @@ def run_model(cfg: dict) -> list:
                         'length': skimDist[invZoneDict[orig]-1,invZoneDict[dest]-1],
                         'travtime': skimTravTime[invZoneDict[orig]-1,invZoneDict[dest]-1],
                         'network': 'crowdshipping',
-                        'type': 'individual'}
-                    if attrs['length'] < 10000:
+                        'type': 'individual',
+                        'CEP':  'crowdshipping'}
+                    if attrs['length'] <  (cfg['CS_MaxParcelDistance']*1000):
                         G.add_edge(f"{orig}_CS", f"{dest}_CS", **attrs)
             nx.set_node_attributes(G, {f"{orig}_CS":'node'}, 'node_type')
             attrs = {
                 'length': 0,
                 'travtime': 0,
                 'network': 'crowdshipping',
-                'type': 'access-egress'
+                'type': 'access-egress', 
+                'CEP':  'crowdshipping'
             }
             G.add_edge(orig, f"{orig}_CS", **attrs)
 
@@ -265,9 +269,17 @@ def run_model(cfg: dict) -> list:
     '''
     
     
+    if cfg['CROWDSHIPPING_NETWORK']:
+        parcels_hyperconnected_NotCS = parcels_hyperconnected [parcels_hyperconnected['CS_eligible']==False]
+    else:
+        parcels_hyperconnected_NotCS = parcels_hyperconnected
+    
+
+    parcels_hyperconnected_NotCS['path'] = type('object')   
+    
     
     parcels_hyperconnected['path'] = type('object')
-    for index, parcel in parcels_hyperconnected.iterrows():
+    for index, parcel in parcels_hyperconnected_NotCS.iterrows():
         orig = parcel['O_zone']
         dest = parcel['D_zone']
 
@@ -296,8 +308,8 @@ def run_model(cfg: dict) -> list:
                     parcel,
                     cfg
                 )
-        parcels_hyperconnected.at[index, 'path'] = shortest_paths[0]
-        parcels_hyperconnected.at[index, 'weightSum'] = weightSum
+        parcels_hyperconnected_NotCS.at[index, 'path'] = shortest_paths[0]
+        parcels_hyperconnected_NotCS.at[index, 'weightSum'] = weightSum
 
     # Module 3.5 Parcel trips breakdown
     logger.info('Parcels network breakdown...')
@@ -305,8 +317,8 @@ def run_model(cfg: dict) -> list:
     # initiate dataframe with above stated columns
     parcel_trips = pd.DataFrame(columns=cols)
     parcel_trips = parcel_trips.astype({'Parcel_ID': int,'O_zone': int, 'D_zone': int})
-    for index, parcel in parcels_hyperconnected.iterrows():
-        path = parcels_hyperconnected.at[index,'path']
+    for index, parcel in parcels_hyperconnected_NotCS.iterrows():
+        path = parcel['path']
         # remove the first and last node from path (these are the access/egress links)
         path = path[1:-1]
         for pair in pairwise(path):
@@ -332,8 +344,8 @@ def run_model(cfg: dict) -> list:
     logger.info("Allocate crowdshipping parcels...")
     if cfg['CROWDSHIPPING_NETWORK']:
         # select only trips using crowdshipping
-        parcel_trips_CS = parcel_trips[parcel_trips['Network'] == 'crowdshipping']
-        parcel_trips_CS_unmatched_pickup = pd.DataFrame()
+        parcel_trips_CS = parcels_hyperconnected [parcels_hyperconnected['CS_eligible']==True]        
+        parcel_trips_CS = parcel_trips_CS.append (parcel_trips[parcel_trips['Network'] == 'crowdshipping']) 
         parcel_trips_CS_unmatched_delivery = pd.DataFrame()
         if not parcel_trips_CS.empty:
             # write those trips to csv (default location of parcel demand for scheduling module)
@@ -377,10 +389,18 @@ def run_model(cfg: dict) -> list:
                     # add original cep to parcel
                     parcel_trips_CS_unmatched_pickup.loc[index, 'CEP'] = cep
                     # change destination to closest depot
-                    parcel_trips_CS_unmatched_pickup.loc[index, 'D_zone'] = \
-                        cepZoneDict[cep][skimTravTime[invZoneDict[parcel['O_zone']]-1,
-                                                      [x-1 for x in cepSkimDict[cep]]].argmin()
-                        ]
+                    minDist=10000000000
+                    DZONE = 0
+                    for depot in cepZoneDict[cep]:
+                        if minDist > skimTravTime[(invZoneDict[parcel['D_zone']]-1),(invZoneDict[depot]-1)]:
+                            minDist = skimTravTime[(invZoneDict[parcel['D_zone']]-1),(invZoneDict[depot]-1)]
+                            DZONE = depot
+                    parcel_trips_CS_unmatched_pickup.loc[index, 'D_zone'] = DZONE 
+                    ## Alternative method
+                    # parcel_trips_CS_unmatched_pickup.loc[index, 'D_zone'] = \
+                    #     cepZoneDict[cep][skimTravTime[invZoneDict[parcel['O_zone']]-1,
+                    #                                   [x-1 for x in cepSkimDict[cep]]].argmin()
+                    #     ]
                 else: #for CS delivery parcels
                     # add cs parcel to pick-up dataframe
                     parcel_trips_CS_unmatched_delivery = \
@@ -388,9 +408,17 @@ def run_model(cfg: dict) -> list:
                     # add original cep to parcel
                     parcel_trips_CS_unmatched_delivery.loc[index, 'CEP'] = cep
                     # change origin to closest depot
-                    parcel_trips_CS_unmatched_delivery.loc[index, 'O_zone'] = \
-                        cepZoneDict[cep][skimTravTime[invZoneDict[parcel['D_zone']]-1,
-                                                      [x-1 for x in cepSkimDict[cep]]].argmin()]
+                    minDist=10000000000
+                    OZONE = 0
+                    for depot in cepZoneDict[cep]:
+                        if minDist > skimTravTime[(invZoneDict[parcel['D_zone']]-1),(invZoneDict[depot]-1)]:
+                            minDist = skimTravTime[(invZoneDict[parcel['D_zone']]-1),(invZoneDict[depot]-1)]
+                            OZONE = depot
+                    parcel_trips_CS_unmatched_delivery.loc[index, 'O_zone'] = OZONE
+                    ## Alternative method
+                    # parcel_trips_CS_unmatched_delivery.loc[index, 'O_zone'] = \
+                    #     cepZoneDict[cep][skimTravTime[invZoneDict[parcel['D_zone']]-1,
+                    #                                   [x-1 for x in cepSkimDict[cep]]].argmin()]
 
 
     # Module 4.2: Parcel assignment: CONVENTIONAL
@@ -409,8 +437,7 @@ def run_model(cfg: dict) -> list:
             parcel_trips_HS_delivery.append(parcel_trips_CS_unmatched_delivery,
                                             ignore_index=True, sort=False)
 
-    # add depotnumer column
-    parcel_trips_HS_delivery.insert(3, 'DepotNumber', np.nan)
+    # add depotnumer column --> Done above
     # loop over parcels
     for index, parcel in parcel_trips_HS_delivery.iterrows():
         try:
@@ -478,7 +505,7 @@ def run_model(cfg: dict) -> list:
                                                                ignore_index=True, sort=False)
 
     # add depotnumer column
-    parcel_trips_HS_pickup.insert(3, 'DepotNumber', np.nan)
+    # add depotnumer column --> Done above
 
     error2 = 0
     # loop over parcels

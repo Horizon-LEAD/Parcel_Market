@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Dec  7 08:25:29 2022
+
+@author: rtapia
+"""
 """CS module
 """
 
@@ -161,7 +167,7 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
     parcels['CS_deliveryChoice'] = parcels['CS_deliveryChoice'] > 0   # I already simulated the gumbell distribution, so the utility is the actual choice!!!!!!!
 
 
-    if cfg['CS_ALLOCATION'] == 'demand':  # This is the old approach
+    if cfg['CS_ALLOCATION'] == 'MinimumDistance':  # This is the old approach
         
         for index, parcel in parcels.iterrows():
             parc_orig = parcel['O_zone']
@@ -178,19 +184,51 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                                       ((parc_orig_muni == tripsCS['municipality_orig']) | (parc_orig_muni == tripsCS['municipality_dest']) |
                                        (parc_dest_muni == tripsCS['municipality_orig']) | (parc_dest_muni == tripsCS['municipality_dest'])))]
             for i, traveller in filtered_trips.iterrows():
-                VoT = eval (varDict['VOT'])  # In case I will do the VoT function of the traveller sociodems/purpose, etc
+                VoT =  (cfg['VOT'])  # In case I will do the VoT function of the traveller sociodems/purpose, etc
                 trav_orig = traveller['O_zone']
                 trav_dest = traveller['D_zone']
                 mode = traveller['Mode']
                 trip_time = traveller['travtime']
                 trip_dist = traveller['travdist']
-                if mode in ['car']: CS_pickup_time = droptime_car
-                if mode in ['bike', 'car_passenger']: CS_pickup_time = droptime_bike
-                if mode in ['walk', 'pt']: CS_pickup_time = droptime_pt
+                if mode in ['car','Car']: 
+                    CS_pickup_time = droptime_car
+                    mode = 'car'
+                    CS_pickup_time = droptime_car
+                    time_traveller_parcel   = get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
+                    time_parcel_trip        = get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
+                    time_customer_end       = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
+                    time_traveller_parcelT   = 60 * time_traveller_parcel # Result in minutes (if timefact = 1)
+                    time_parcel_tripT        = 60 * time_parcel_trip   # Result in minutes (if timefact = 1)
+                    time_customer_endT      = 60 * time_customer_end # Result in minutes (if timefact = 1)
+                    
+                    
+                    # dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones) # These are car/can TTs!!
+                    # dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime[mode], nSkimZones) # These are car/can TTs!!
+                    # dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime[mode], nSkimZones) # These are car/can TTs!!
+                    dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimDist, nSkimZones) # These are car/can TTs!!
+                    dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
+                    dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
+                    time_traveller_parcel   = 60 * dist_traveller_parcel  /  cfg['CarSpeed'] 
+                    time_parcel_trip        = 60 * dist_parcel_trip       /  cfg['CarSpeed'] # Result in minutes (if timefact = 1)
+                    time_customer_end       = 60 * dist_customer_end     /   cfg['CarSpeed'] # Result in minutes (if timefact = 1)
+                    
+                    time_traveller_parcel = max(time_traveller_parcelT,time_traveller_parcel)
+                    time_parcel_trip= max(time_parcel_tripT,time_parcel_trip)
+                    time_customer_end= max(time_customer_endT,time_customer_end)
+                if mode in ['bike', 'car_passenger','Walking or Biking']: 
+                    CS_pickup_time = droptime_bike
+                    dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimDist, nSkimZones) # These are car/can TTs!!
+                    dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
+                    dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
+                    time_traveller_parcel   = 60 * dist_traveller_parcel  /  cfg['WalkBikeSpeed']  # Result in minutes (if timefact = 1)
+                    time_parcel_trip        = 60 * dist_parcel_trip       /  cfg['WalkBikeSpeed'] # Result in minutes (if timefact = 1)
+                    time_customer_end       = 60 * dist_customer_end     /   cfg['WalkBikeSpeed'] # Result in minutes (if timefact = 1)
+                if mode in ['walk', 'pt']: 
+                    CS_pickup_time = droptime_pt
                 
-                time_traveller_parcel   = get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones, timeFac)
-                time_parcel_trip        = get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime[mode], nSkimZones, timeFac)
-                time_customer_end       = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime[mode], nSkimZones, timeFac)
+                # time_traveller_parcel   = get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones, timeFac)
+                # time_parcel_trip        = get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime[mode], nSkimZones, timeFac)
+                # time_customer_end       = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime[mode], nSkimZones, timeFac)
                 CS_trip_time = (time_traveller_parcel + time_parcel_trip + time_customer_end)
                 CS_detour_time = CS_trip_time - trip_time
                 
@@ -206,7 +244,8 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                         CS_Min = (-1)* CS_surplus  # The -1 is to minimize the surplus
                     elif varDict ['CS_BringerScore'] == 'Min_Detour':
                         CS_Min = round(CS_trip_dist - trip_dist, 5)
-                    
+                    elif varDict ['CS_BringerScore'] == 'Min_Time':
+                        CS_Min = round(((CS_detour_time + CS_pickup_time * 2)/3600) - trip_time, 5)
                     Minimizing_dict[f"{traveller['person_id']}_{traveller['person_trip_id']}"] = CS_Min
                 
             if Minimizing_dict:  # The traveler that has the lowest detour gets the parcel
@@ -214,7 +253,9 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                 parcels.loc[index, 'traveller'] = traveller
                 parcels.loc[index, 'detour'] = Minimizing_dict[traveller]
                 parcels.loc[index, 'compensation'] = compensation
-                
+                parcels.loc[index, 'Mode'] = filtered_trips.loc[filtered_trips["unique_id"]==traveller,'Mode'].iloc[0]
+                parcels.loc[index, 'unique_id'] = traveller
+
 
     elif cfg['CS_ALLOCATION'] == 'best2best':
         Surpluses = np.zeros((len(tripsCS),len(parcels))) 
@@ -252,12 +293,13 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                     trip_dist = traveller['travdist']
                     if mode in ['Car']: 
                         CS_pickup_time = droptime_car
-                        time_traveller_parcel   = get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
-                        time_parcel_trip        = get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
-                        time_customer_end       = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
-                        time_traveller_parcel   = 60 * time_traveller_parcel # Result in minutes (if timefact = 1)
-                        time_parcel_trip        = 60 * time_parcel_trip   # Result in minutes (if timefact = 1)
-                        time_customer_end       = 60 * time_customer_end # Result in minutes (if timefact = 1)
+                        time_traveller_parcelT   = get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
+                        time_parcel_tripT        = get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
+                        time_customer_endT       = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
+                        if timeFac == 1:
+                            time_traveller_parcelT   = 60 * time_traveller_parcel # Result in minutes (if timefact = 1)
+                            time_parcel_tripT        = 60 * time_parcel_trip   # Result in minutes (if timefact = 1)
+                            time_customer_endT       = 60 * time_customer_end # Result in minutes (if timefact = 1)
                         
                         
                         # dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones) # These are car/can TTs!!
@@ -266,7 +308,17 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                         dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
-                        CS_TravelCost           = eval(varDict ['Car_CostKM'])
+                        
+                        dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimDist, nSkimZones) # These are car/can TTs!!
+                        dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
+                        dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
+                        time_traveller_parcel   = 60 * dist_traveller_parcel  /  cfg['CarSpeed'] 
+                        time_parcel_trip        = 60 * dist_parcel_trip       /  cfg['CarSpeed'] # Result in minutes (if timefact = 1)
+                        time_customer_end       = 60 * dist_customer_end     /   cfg['CarSpeed']                        
+                        time_traveller_parcel = max(time_traveller_parcelT,time_traveller_parcel)
+                        time_parcel_trip= max(time_parcel_tripT,time_parcel_trip)
+                        time_customer_end= max(time_customer_endT,time_customer_end)                        
+                        CS_TravelCost           = (cfg ['Car_CostKM'])
                     if mode in ['Walking or Biking', 'Car as Passenger']: CS_pickup_time = droptime_bike
                     if mode in ['Walking or Biking']:
                         # dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones) # These are car/can TTs!!
@@ -311,15 +363,16 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                     if ((CS_detour_time + CS_pickup_time * 2)) == 0: CS_detour_time += 1 #prevents /0 eror
                     compensation_time =  NetCompensation / ((CS_detour_time + CS_pickup_time * 2)/3600)
                     
-                    Util_PickUp = generate_Utility (cfg["CS_BringerUtility"],{'Cost': NetCompensation,'Time':CS_trip_time}) #+80# This is a provisional number so there aren't that many parcels that are eligible until we find the correct equation
-                    Surplus   = Util_PickUp-traveller['BaseUtility']
+                    Util_PickUp = generate_Utility (cfg["CS_BringerUtility"],{'Cost': - NetCompensation,'Time':CS_trip_time}) #+80# This is a provisional number so there aren't that many parcels that are eligible until we find the correct equation
+                    TravUtil = generate_Utility (cfg["CS_BringerUtility"],{'Cost': (CS_TravelCost*traveller['travdist']),'Time':traveller['travtime']})
+                    Surplus   = Util_PickUp-TravUtil
                     Detour    = CS_trip_dist - traveller['travdist']
-                    # print(Surplus)
                     
-                    #TODO: para estar seguros q no da ese error de la distancia negativa:
-                    # if Detour <=0:
-                    #     Surplus = 0
-                    
+                    #TO make sure no neg distances or times:
+                    if traveller['travtime'] >=   CS_trip_time    :  # Disqualify people that save time
+                        Surplus = 0
+                    if Detour<0:  # Disqualify people that save distance
+                        Surplus = 0
                     if Surplus>0:
                         
                         Surpluses[i,index] = Surplus
@@ -386,4 +439,3 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                    
 
    return None
-
