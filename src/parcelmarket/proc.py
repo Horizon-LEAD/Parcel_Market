@@ -28,8 +28,10 @@ def run_model(cfg: dict) -> list:
 
     start_time = time()
 
-    if type(cfg['Seed'])== int : # if a seed is provided, use it
-        np.random.seed(cfg['Seed'])
+    # if a seed is provided, use it
+    if cfg.get('Seed', None):
+        np.random.seed(int(cfg['Seed']))
+
     zones = read_shape(cfg['ZONES'])
     zones.index = zones['AREANR']
     nZones = len(zones)
@@ -157,7 +159,7 @@ def run_model(cfg: dict) -> list:
                 'length': 0,
                 'travtime': 0,
                 'network': 'crowdshipping',
-                'type': 'access-egress', 
+                'type': 'access-egress',
                 'CEP':  'crowdshipping'
             }
             G.add_edge(orig, f"{orig}_CS", **attrs)
@@ -213,7 +215,7 @@ def run_model(cfg: dict) -> list:
         for locker in locker_zones:
             G.add_node(f"{locker}_locker", **{'node_type':'locker'}) #defining a node for each PL (ex. 566_locker)
             attrs = {'length': 0,'travtime': 0, 'network': 'locker', 'type': 'access-egress', 'CEP': "locker"}
-            G.add_edge( f"{locker}_locker",locker, **attrs)  
+            G.add_edge( f"{locker}_locker",locker, **attrs)
 
 
             for cep in PLFulfilment:
@@ -254,30 +256,30 @@ def run_model(cfg: dict) -> list:
                         G.add_edge(f"{parcelNode}_{cep}", f"{other_node}_{other_cep}", **attrs)
 
         print("Hyperconnected")
-    
-    
+
+
     # Module 3: Network allocation
     logger.info('Perform network allocation...')
     # ASC, A1, A2, A3 = cfg['SCORE_ALPHAS']
     # tour_based_cost, consolidated_cost, \
     #   hub_cost, cs_trans_cost ,interCEP_cost = cfg['SCORE_COSTS']
-    
+
     '''
-    This part I couldn't make it work with this version, just with the bad practice one. 
+    This part I couldn't make it work with this version, just with the bad practice one.
     The previous version with the globals and the old function.
-    
+
     '''
-    
-    
+
+
     if cfg['CROWDSHIPPING_NETWORK']:
         parcels_hyperconnected_NotCS = parcels_hyperconnected [parcels_hyperconnected['CS_eligible']==False]
     else:
         parcels_hyperconnected_NotCS = parcels_hyperconnected
-    
 
-    parcels_hyperconnected_NotCS['path'] = type('object')   
-    
-    
+
+    parcels_hyperconnected_NotCS['path'] = type('object')
+
+
     parcels_hyperconnected['path'] = type('object')
     for index, parcel in parcels_hyperconnected_NotCS.iterrows():
         orig = parcel['O_zone']
@@ -329,10 +331,10 @@ def run_model(cfg: dict) -> list:
             edge_type = G[pair[0]][pair[1]]['type']
             cep = ''
             if network == 'conventional':
-                #CEP only applicable to conventional links  
-                cep = G[pair[0]][pair[1]]['CEP'] 
+                #CEP only applicable to conventional links
+                cep = G[pair[0]][pair[1]]['CEP']
             elif network == 'locker':
-                cep = G[pair[0]][pair[1]]['CEP']  
+                cep = G[pair[0]][pair[1]]['CEP']
             # add trip to dataframe
             parcel_trips = parcel_trips.append(
                 pd.DataFrame([[parcel['Parcel_ID'], orig, dest, cep, network, edge_type]],
@@ -344,8 +346,8 @@ def run_model(cfg: dict) -> list:
     logger.info("Allocate crowdshipping parcels...")
     if cfg['CROWDSHIPPING_NETWORK']:
         # select only trips using crowdshipping
-        parcel_trips_CS = parcels_hyperconnected [parcels_hyperconnected['CS_eligible']==True]        
-        parcel_trips_CS = parcel_trips_CS.append (parcel_trips[parcel_trips['Network'] == 'crowdshipping']) 
+        parcel_trips_CS = parcels_hyperconnected [parcels_hyperconnected['CS_eligible']==True]
+        parcel_trips_CS = parcel_trips_CS.append (parcel_trips[parcel_trips['Network'] == 'crowdshipping'])
         parcel_trips_CS_unmatched_delivery = pd.DataFrame()
         if not parcel_trips_CS.empty:
             # write those trips to csv (default location of parcel demand for scheduling module)
@@ -356,7 +358,7 @@ def run_model(cfg: dict) -> list:
             # cs_matching(args) #run module
             # load module output to dataframe
             parcel_trips_CS = pd.read_csv(join(cfg["OUTDIR"], "Parcels_CS_matched.csv"))
-            
+
             # TODO Make sure that this is the style of the output of the CS module
             Trips_CS  = pd.read_csv(join(cfg["OUTDIR"], "TripsCS.csv"))
 
@@ -395,7 +397,7 @@ def run_model(cfg: dict) -> list:
                         if minDist > skimTravTime[(invZoneDict[parcel['D_zone']]-1),(invZoneDict[depot]-1)]:
                             minDist = skimTravTime[(invZoneDict[parcel['D_zone']]-1),(invZoneDict[depot]-1)]
                             DZONE = depot
-                    parcel_trips_CS_unmatched_pickup.loc[index, 'D_zone'] = DZONE 
+                    parcel_trips_CS_unmatched_pickup.loc[index, 'D_zone'] = DZONE
                     ## Alternative method
                     # parcel_trips_CS_unmatched_pickup.loc[index, 'D_zone'] = \
                     #     cepZoneDict[cep][skimTravTime[invZoneDict[parcel['O_zone']]-1,
@@ -457,12 +459,12 @@ def run_model(cfg: dict) -> list:
 
     # pick the first part of the parcel trip
     parcel_trips_HS_pickup = parcel_trips.drop_duplicates(subset = ["Parcel_ID"], keep='first')
-    # only take parcels which are conventional or locker & tour-based    
+    # only take parcels which are conventional or locker & tour-based
 
     parcel_trips_HS_pickup = \
         parcel_trips_HS_pickup[((parcel_trips_HS_pickup['Network'] == 'conventional') | \
                                 (parcel_trips_HS_pickup['Network'] == 'locker')) & \
-                               (parcel_trips_HS_pickup['Type'] == 'tour-based')] 
+                               (parcel_trips_HS_pickup['Type'] == 'tour-based')]
     Gemeenten = cfg['Gemeenten_studyarea']
 
     if len(Gemeenten) > 1:
@@ -532,17 +534,17 @@ def run_model(cfg: dict) -> list:
     kpis = {}
     kpis['Local2Local']  =int( parcels['L2L'].sum())
     kpis['Local2Local_Percentage']  = round(100*parcels['L2L'].sum()/ len(parcels),2)
-    
+
     for cep in cepList: # initiate vars in dict
         kpis['L2L_' + str(cep)] = 0
-    
-    
-    
+
+
+
     for index,parcel in parcel_trips_HS_pickup.iterrows(): # For some reason the pick up is closer to the actual L2L values (minus CS)
         parcelCEP = parcel['CEP']
         kpis['L2L_' + parcelCEP] += 1
-        
-        
+
+
     if cfg['CROWDSHIPPING_NETWORK']:
     #     kpis['crowdshipping_parcels'] = len(parcel_trips_CS)
     #     if kpis['crowdshipping_parcels'] > 0:
@@ -561,7 +563,7 @@ def run_model(cfg: dict) -> list:
             WalkBikeCompensation =0.00001
             CarCount =0
             WalkBikeCount=0
-            
+
             for index, parcel in parcel_trips_CS.iterrows():
                 if parcel["Mode"] in (['Car','Car as Passenger']):
                     Carkm += parcel["detour"]
@@ -571,7 +573,7 @@ def run_model(cfg: dict) -> list:
                     WalkBikekm += parcel["detour"]
                     WalkBikeCompensation   += parcel["compensation"]
                     WalkBikeCount  +=1
-            
+
             kpis['Crowdshipping'] = {
                 'parcels' : len(parcel_trips_CS),
                 'PoolOfTrips':len(Trips_CS),
