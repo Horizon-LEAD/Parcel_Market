@@ -17,13 +17,12 @@ PARAMS_NUM = ["CONSOLIDATED_MAXLOAD", "CS_WILLINGNESS", "PARCELS_DROPTIME_CAR",
               'CarSpeed','WalkBikeSpeed','CarCO2',
               "CS_MaxParcelDistance"]
 PARAMS_LIST_STR = ["Gemeenten_studyarea", "Gemeenten_CS",
-                   "hub_zones", "parcelLockers_zones"]
+                   "hub_zones", "parcelLockers_zones", "ParcelLockersfulfilment"]
 PARAMS_LIST_BOOL = []
 PARAMS_LIST_NUM = ["SCORE_ALPHAS", "SCORE_COSTS","CS_COMPENSATION",
-                   "CS_Willingess2Send","CS_BaseBringerWillingess",
-                   "CS_BringerUtility"]
-PARAMS_JSON = ["HyperConect","ParcelLockersfulfilment",
-               "CS_BringerFilter","CS_UtilityFunction"]
+                   "CS_BaseBringerWillingess", "CS_BringerUtility"]
+PARAMS_JSON = ["HyperConect", "CS_BringerFilter",
+               "CS_UtilityFunction", "CS_Willingess2Send"]
 
 logger = getLogger("parcelmarket.envctl")
 
@@ -72,10 +71,10 @@ def parse_env_values(env):
         for key in PARAMS_JSON:
             config_env[key] = {} if env[key] == '' else loads(env[key])
     except KeyError as exc:
-        raise KeyError("Failed while parsing environment configuration") from exc
+        raise KeyError(f"[{key}] Failed while parsing environment configuration") from exc
     except JSONDecodeError as exc:
-        raise ValueError("Failed while parsing JSON environment configuration") from exc
+        raise ValueError(f"[{key}] Failed while parsing JSON environment configuration") from exc
     except ValueError as exc:
-        raise ValueError("Failed while parsing environment configuration") from exc
+        raise ValueError(f"[{key}] Failed while parsing environment configuration") from exc
 
     return config_env
