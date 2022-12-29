@@ -48,14 +48,14 @@ def generate_cs_supply(
     :return: _description_
     :rtype: pd.DataFrame
     """
-    
+
     for SE_Filter in cfg["CS_BringerFilter"]:
         trips = trips.loc[trips[SE_Filter].isin(cfg["CS_BringerFilter"][SE_Filter])]
-    
-    
-    
+
+
+
     # Willingness a priori. This is the willingness to be surbscribed in the platform
-    trips['CS_willing'] = np.random.uniform(0, 1, len(trips)) < trips['unique_id'].apply(lambda x: get_BaseWillforBring(cfg,x))     
+    trips['CS_willing'] = np.random.uniform(0, 1, len(trips)) < trips['unique_id'].apply(lambda x: get_BaseWillforBring(cfg,x))
     trips['CS_eligible'] = (trips['CS_willing'])
 
     tripsCS = trips[(trips['CS_eligible'] == True)]
@@ -96,11 +96,11 @@ def generate_cs_supply(
             cost  = 0
             traveller[28] = generate_Utility (cfg["CS_BringerUtility"],{'Cost': cost,'Time':traveller[24]})
 
-        else: 
+        else:
             traveller[19] = np.nan
         traveller[26] = zones.loc[traveller[22], 'GEMEENTEN']
         traveller[27] = zones.loc[traveller[23], 'GEMEENTEN']
-        
+
     tripsCS = pd.DataFrame(trips_array, columns=tripsCS.columns)
 
     return tripsCS
@@ -159,8 +159,8 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
     parcels = pd.read_csv(DirCS_Parcels)
     parcels["traveller"],parcels["trip"], parcels["detour"], parcels["compensation"] = '', np.nan, np.nan,0
 
-    parcels['parceldistance'] = parcels.apply(lambda x: get_distance(x.O_zone,x.D_zone, skimDist, nSkimZones), axis=1) 
-    parcels['compensation'] = parcels.apply(lambda x: get_compensation(x.parceldistance), axis=1) 
+    parcels['parceldistance'] = parcels.apply(lambda x: get_distance(x.O_zone,x.D_zone, skimDist, nSkimZones), axis=1)
+    parcels['compensation'] = parcels.apply(lambda x: get_compensation(x.parceldistance), axis=1)
     parcels['cost'] = parcels['compensation'] * (1+ cfg['PlatformComission']+ cfg['CS_Costs'])
     parcels['CS_comission'] = parcels['cost'] *  cfg['PlatformComission']
     parcels['CS_deliveryChoice'] = parcels.apply(lambda x: get_WillingnessToSend(cfg['CS_Willingess2Send'], x.cost,cfg['TradCost']), axis=1)
@@ -168,7 +168,7 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
 
 
     if cfg['CS_ALLOCATION'] == 'MinimumDistance':  # This is the old approach
-        
+
         for index, parcel in parcels.iterrows():
             parc_orig = parcel['O_zone']
             parc_dest = parcel['D_zone']
@@ -179,8 +179,8 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
             # parcel['compensation'] = compensation
             compensation = parcel['compensation']
             Minimizing_dict = {}
-            filtered_trips = tripsCS[((parc_dist / tripsCS['travdist'] < 1) & 
-                                      (tripsCS['shipping'].isnull()) & 
+            filtered_trips = tripsCS[((parc_dist / tripsCS['travdist'] < 1) &
+                                      (tripsCS['shipping'].isnull()) &
                                       ((parc_orig_muni == tripsCS['municipality_orig']) | (parc_orig_muni == tripsCS['municipality_dest']) |
                                        (parc_dest_muni == tripsCS['municipality_orig']) | (parc_dest_muni == tripsCS['municipality_dest'])))]
             for i, traveller in filtered_trips.iterrows():
@@ -190,7 +190,7 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                 mode = traveller['Mode']
                 trip_time = traveller['travtime']
                 trip_dist = traveller['travdist']
-                if mode in ['car','Car']: 
+                if mode in ['car','Car']:
                     CS_pickup_time = droptime_car
                     mode = 'car'
                     CS_pickup_time = droptime_car
@@ -200,22 +200,22 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                     time_traveller_parcelT   = 60 * time_traveller_parcel # Result in minutes (if timefact = 1)
                     time_parcel_tripT        = 60 * time_parcel_trip   # Result in minutes (if timefact = 1)
                     time_customer_endT      = 60 * time_customer_end # Result in minutes (if timefact = 1)
-                    
-                    
+
+
                     # dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones) # These are car/can TTs!!
                     # dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime[mode], nSkimZones) # These are car/can TTs!!
                     # dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime[mode], nSkimZones) # These are car/can TTs!!
                     dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimDist, nSkimZones) # These are car/can TTs!!
                     dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
                     dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
-                    time_traveller_parcel   = 60 * dist_traveller_parcel  /  cfg['CarSpeed'] 
+                    time_traveller_parcel   = 60 * dist_traveller_parcel  /  cfg['CarSpeed']
                     time_parcel_trip        = 60 * dist_parcel_trip       /  cfg['CarSpeed'] # Result in minutes (if timefact = 1)
                     time_customer_end       = 60 * dist_customer_end     /   cfg['CarSpeed'] # Result in minutes (if timefact = 1)
-                    
+
                     time_traveller_parcel = max(time_traveller_parcelT,time_traveller_parcel)
                     time_parcel_trip= max(time_parcel_tripT,time_parcel_trip)
                     time_customer_end= max(time_customer_endT,time_customer_end)
-                if mode in ['bike', 'car_passenger','Walking or Biking']: 
+                if mode in ['bike', 'car_passenger','Walking or Biking']:
                     CS_pickup_time = droptime_bike
                     dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimDist, nSkimZones) # These are car/can TTs!!
                     dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
@@ -223,15 +223,15 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                     time_traveller_parcel   = 60 * dist_traveller_parcel  /  cfg['WalkBikeSpeed']  # Result in minutes (if timefact = 1)
                     time_parcel_trip        = 60 * dist_parcel_trip       /  cfg['WalkBikeSpeed'] # Result in minutes (if timefact = 1)
                     time_customer_end       = 60 * dist_customer_end     /   cfg['WalkBikeSpeed'] # Result in minutes (if timefact = 1)
-                if mode in ['walk', 'pt']: 
+                if mode in ['walk', 'pt']:
                     CS_pickup_time = droptime_pt
-                
+
                 # time_traveller_parcel   = get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones, timeFac)
                 # time_parcel_trip        = get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime[mode], nSkimZones, timeFac)
                 # time_customer_end       = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime[mode], nSkimZones, timeFac)
                 CS_trip_time = (time_traveller_parcel + time_parcel_trip + time_customer_end)
                 CS_detour_time = CS_trip_time - trip_time
-                
+
                 if ((CS_detour_time + CS_pickup_time * 2)/3600) == 0: CS_detour_time += 1 #prevents /0 eror
                 compensation_time =  compensation / ((CS_detour_time + CS_pickup_time * 2)/3600)
                 if compensation_time > VoT:
@@ -247,7 +247,7 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                     elif varDict ['CS_BringerScore'] == 'Min_Time':
                         CS_Min = round(((CS_detour_time + CS_pickup_time * 2)/3600) - trip_time, 5)
                     Minimizing_dict[f"{traveller['person_id']}_{traveller['person_trip_id']}"] = CS_Min
-                
+
             if Minimizing_dict:  # The traveler that has the lowest detour gets the parcel
                 traveller = min(Minimizing_dict, key=Minimizing_dict.get)
                 parcels.loc[index, 'traveller'] = traveller
@@ -258,10 +258,10 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
 
 
     elif cfg['CS_ALLOCATION'] == 'best2best':
-        Surpluses = np.zeros((len(tripsCS),len(parcels))) 
-        Detours   = np.zeros((len(tripsCS),len(parcels))) 
-        # Detours   = np.zeros((len(tripsCS),len(parcels))) 
-        
+        Surpluses = np.zeros((len(tripsCS),len(parcels)))
+        Detours   = np.zeros((len(tripsCS),len(parcels)))
+        # Detours   = np.zeros((len(tripsCS),len(parcels)))
+
         # comp = []
         print("Starting Utility evaluation")
         for index, parcel in parcels.iterrows():
@@ -273,16 +273,16 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
             # compensation = get_compensation(parc_dist)
             # comp.append(compensation)
             # parcels.iloc[index]['compensation'] = compensation
-            
+
             compensation = parcel['compensation']
-            # This is a preventive filter to have less suitable trips. Nimber does this by doing a "fat line" of routes. 
-            filtered_trips = tripsCS[((parc_dist / tripsCS['travdist'] < 1) & # Parcel dist has to be lower than the actual trip, why?? TODO 
-                                      (tripsCS['shipping'].isnull()) & 
+            # This is a preventive filter to have less suitable trips. Nimber does this by doing a "fat line" of routes.
+            filtered_trips = tripsCS[((parc_dist / tripsCS['travdist'] < 1) & # Parcel dist has to be lower than the actual trip, why?? TODO
+                                      (tripsCS['shipping'].isnull()) &
                                       ((parc_orig_muni == tripsCS['municipality_orig']) | (parc_orig_muni == tripsCS['municipality_dest']) |
                                         (parc_dest_muni == tripsCS['municipality_orig']) | (parc_dest_muni == tripsCS['municipality_dest'])))]
-            
+
             if parcel['CS_deliveryChoice']:
-                
+
                 for i, traveller in filtered_trips.iterrows():
                     # print(traveller['PossibleParcels'] )
                     # VoT = eval (varDict['VOT'])  # In case I will do the VoT function of the traveller sociodems/purpose, etc
@@ -291,7 +291,7 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                     mode = traveller['Mode']
                     trip_time = traveller['travtime']
                     trip_dist = traveller['travdist']
-                    if mode in ['Car']: 
+                    if mode in ['Car']:
                         CS_pickup_time = droptime_car
                         time_traveller_parcelT   = get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
                         time_parcel_tripT        = get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime['car'], nSkimZones, timeFac) # These are car/can TTs!!
@@ -300,24 +300,24 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                             time_traveller_parcelT   = 60 * time_traveller_parcel # Result in minutes (if timefact = 1)
                             time_parcel_tripT        = 60 * time_parcel_trip   # Result in minutes (if timefact = 1)
                             time_customer_endT       = 60 * time_customer_end # Result in minutes (if timefact = 1)
-                        
-                        
+
+
                         # dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime[mode], nSkimZones) # These are car/can TTs!!
                         # dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime[mode], nSkimZones) # These are car/can TTs!!
                         # dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime[mode], nSkimZones) # These are car/can TTs!!
                         dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
-                        
+
                         dist_traveller_parcel   = get_distance(invZoneDict[trav_orig], invZoneDict[parc_orig], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_parcel_trip        = get_distance(invZoneDict[parc_orig], invZoneDict[parc_dest], skimDist, nSkimZones) # These are car/can TTs!!
                         dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
-                        time_traveller_parcel   = 60 * dist_traveller_parcel  /  cfg['CarSpeed'] 
+                        time_traveller_parcel   = 60 * dist_traveller_parcel  /  cfg['CarSpeed']
                         time_parcel_trip        = 60 * dist_parcel_trip       /  cfg['CarSpeed'] # Result in minutes (if timefact = 1)
-                        time_customer_end       = 60 * dist_customer_end     /   cfg['CarSpeed']                        
+                        time_customer_end       = 60 * dist_customer_end     /   cfg['CarSpeed']
                         time_traveller_parcel = max(time_traveller_parcelT,time_traveller_parcel)
                         time_parcel_trip= max(time_parcel_tripT,time_parcel_trip)
-                        time_customer_end= max(time_customer_endT,time_customer_end)                        
+                        time_customer_end= max(time_customer_endT,time_customer_end)
                         CS_TravelCost           = (cfg ['Car_CostKM'])
                     if mode in ['Walking or Biking', 'Car as Passenger']: CS_pickup_time = droptime_bike
                     if mode in ['Walking or Biking']:
@@ -330,13 +330,13 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                         time_traveller_parcel   = 60 * dist_traveller_parcel  /  varDict['WalkBikeSpeed']  # Result in minutes (if timefact = 1)
                         time_parcel_trip        = 60 * dist_parcel_trip       /  varDict['WalkBikeSpeed'] # Result in minutes (if timefact = 1)
                         time_customer_end       = 60 * dist_customer_end     / varDict['WalkBikeSpeed'] # Result in minutes (if timefact = 1)
-                        
+
                         # Change this to make sure I don't have negative time detours! (sometimes it happens that they have less travel distances)
-                        
+
                         time_traveller_parcel  =get_traveltime(invZoneDict[trav_orig], invZoneDict[parc_orig], skimTime['car'], nSkimZones, timeFac) * varDict['CarSpeed']/varDict['WalkBikeSpeed']
                         time_parcel_trip       =get_traveltime(invZoneDict[parc_orig], invZoneDict[parc_dest], skimTime['car'], nSkimZones, timeFac) * varDict['CarSpeed']/varDict['WalkBikeSpeed']
                         time_customer_end      = get_traveltime(invZoneDict[parc_dest], invZoneDict[trav_dest], skimTime['car'], nSkimZones, timeFac)* varDict['CarSpeed']/varDict['WalkBikeSpeed']
-                        
+
                         CS_TravelCost           = 0
                     if mode in ['walk', 'pt']: CS_pickup_time = droptime_pt
                     if mode in ['walk']:
@@ -348,36 +348,36 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                         dist_customer_end       = get_distance(invZoneDict[parc_dest], invZoneDict[trav_dest], skimDist, nSkimZones) # These are car/can TTs!!
                         time_traveller_parcel   =  60 *dist_traveller_parcel  / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)
                         time_parcel_trip        =  60 *dist_parcel_trip       / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)
-                        time_customer_end       =  60 *dist_customer_end     / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)                
-                        CS_TravelCost           = 0                
-                    
-                    
-                    
+                        time_customer_end       =  60 *dist_customer_end     / 1  # CHANGE FOR CORRECT walk SPEED (AND CORRECT UNITS)
+                        CS_TravelCost           = 0
+
+
+
                     CS_trip_dist = (dist_traveller_parcel + dist_parcel_trip + dist_customer_end)
                     CS_trip_time = (time_traveller_parcel + time_parcel_trip + time_customer_end)
                     CS_detour_time = CS_trip_time + 2 * CS_pickup_time - trip_time
                     CS_detour_dist = CS_trip_dist - trip_dist
-                    
+
                     NetCompensation = compensation - CS_detour_dist * CS_TravelCost # Is this better approx? Do people compare just the compensation with the time or the pocket compensation??
-                                
+
                     if ((CS_detour_time + CS_pickup_time * 2)) == 0: CS_detour_time += 1 #prevents /0 eror
                     compensation_time =  NetCompensation / ((CS_detour_time + CS_pickup_time * 2)/3600)
-                    
+
                     Util_PickUp = generate_Utility (cfg["CS_BringerUtility"],{'Cost': - NetCompensation,'Time':CS_trip_time}) #+80# This is a provisional number so there aren't that many parcels that are eligible until we find the correct equation
                     TravUtil = generate_Utility (cfg["CS_BringerUtility"],{'Cost': (CS_TravelCost*traveller['travdist']),'Time':traveller['travtime']})
                     Surplus   = Util_PickUp-TravUtil
                     Detour    = CS_trip_dist - traveller['travdist']
-                    
+
                     #TO make sure no neg distances or times:
                     if traveller['travtime'] >=   CS_trip_time    :  # Disqualify people that save time
                         Surplus = 0
                     if Detour<0:  # Disqualify people that save distance
                         Surplus = 0
                     if Surplus>0:
-                        
+
                         Surpluses[i,index] = Surplus
                         Detours  [i,index] = Detour
-                    
+
             # print("parcel ", index, " from ", len(parcels))
 
 
@@ -386,13 +386,13 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
 
         lableTrav = tripsCS[['unique_id']].reset_index(drop=True)
         lableParcels = parcels[['Parcel_ID']].reset_index(drop=True)
-        
+
         Surplus = Surpluses
-        
+
         value = 1
         matches ={}
         distances = {}
-        
+
         matrix = Surplus
         rows = lableTrav
         cols = lableParcels
@@ -404,38 +404,32 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                 matches.update(position)
                 distances.update(detour)
             # print(position)
-            # print(value)        
+            # print(value)
         matches_trips = matches
         matches_parcels =  {v: k for k, v in matches.items()}
-        
-        
-        
-        
+
+
+
+
         parcels['trip'] = parcels['Parcel_ID'].map(matches_parcels)
         parcels['detour'] = parcels['trip'].map(distances)
         # parcels['compensation'] = comp
-            
+
         tripsMode = trips[["unique_id","Mode"]]
         #Get the mode and add it to the parcel
-    
-        
+
+
         parcels =  pd.merge(parcels,tripsMode,left_on='trip', right_on='unique_id')
-        
+
         parcels['traveller'] = parcels['trip'].apply(lambda x: x[0:-2])
         #### THE CROWDSHIPPING TRIP DATAFRAME HAS NOT BEEN UPDATED WITH THE NEW TRIPS!!!!!!
-    
+
         # person, trip = traveller.split('_')
         # person = int(person); trip = int(trip)
         # # print(traveller)
         # tripsCS.loc[((tripsCS['person_id'] == person) & (tripsCS['person_trip_id'] == trip)), 'shipping'] = parcels.loc[index, 'Parcel_ID'] # Are we saving the trips CS?
-    
-        
-            
-
-
 
     parcels.to_csv(join(cfg["OUTDIR"], "Parcels_CS_matched.csv"), index=False)
-    tripsCS.to_csv(join(cfg["OUTDIR"],  "TripsCS.csv", index=False)
-                   
+    tripsCS.to_csv(join(cfg["OUTDIR"],  "TripsCS.csv"), index=False)
 
-   return None
+    return None
