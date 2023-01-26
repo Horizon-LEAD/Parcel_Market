@@ -27,7 +27,7 @@ def run_model(cfg: dict) -> list:
     """
 
     start_time = time()
-
+    pd.options.mode.chained_assignment = None # This can be removed, it prints less stuff here
     # if a seed is provided, use it
     if cfg.get('Seed', None):
         np.random.seed(int(cfg['Seed']))
@@ -213,6 +213,7 @@ def run_model(cfg: dict) -> list:
     if len(cfg['parcelLockers_zones']) != 0:  #this part runs only if there are available PL
         locker_zones=cfg['parcelLockers_zones']
         for locker in locker_zones:
+            locker = int(locker)
             G.add_node(f"{locker}_locker", **{'node_type':'locker'}) #defining a node for each PL (ex. 566_locker)
             attrs = {'length': 0,'travtime': 0, 'network': 'locker', 'type': 'access-egress', 'CEP': "locker"}
             G.add_edge( f"{locker}_locker",locker, **attrs)
@@ -575,15 +576,17 @@ def run_model(cfg: dict) -> list:
                     WalkBikeCount  +=1
 
             kpis['Crowdshipping'] = {
-                'parcels' : len(parcel_trips_CS),
+                'parcels_eligibleforCS' : len(parcel_trips_CS),
+                'parcels_ChooseCS':len(parcel_trips_CS[parcel_trips_CS['CS_deliveryChoice']]),
+                'parcels_DidntChooseCS':len(parcel_trips_CS)-len(parcel_trips_CS[parcel_trips_CS['CS_deliveryChoice']]),
                 'PoolOfTrips':len(Trips_CS),
                 'PoolOfTravellers':len(set(Trips_CS['person_id'])),
                 'parcels_matched' : int(parcel_trips_CS['trip'].notna().sum()),
-                'match_percentage': round((parcel_trips_CS['trip'].notna().sum()/len(parcel_trips_CS))*100,1),
+                'match_percentage': round((parcel_trips_CS['trip'].notna().sum()/len(parcel_trips_CS[parcel_trips_CS['CS_deliveryChoice']]))*100,1),
                 'detour_sum': int(parcel_trips_CS['detour'].sum()),
                 'detour_avg': round(parcel_trips_CS['detour'].mean(),2),
                 'compensation_avg': round(parcel_trips_CS['compensation'].mean(),2),
-                'PlatformComission' : round(parcel_trips_CS['CS_comission'].sum(),2),
+                'PlatformComission' : round(parcel_trips_CS[parcel_trips_CS['trip'].notna()]['CS_comission'].sum(),2),
                 # 'PlatformComission_avg' : round(parcel_trips_CS['CS_comission'].sum()/(KPIs['Crowdshipping']["parcels_matched"] ),2),
                 'car': {
                       'detour':round(Carkm,2),
@@ -609,7 +612,7 @@ def run_model(cfg: dict) -> list:
 
         else:
             kpis['Crowdshipping'] = {
-                parcels :0
+                'parcels' :0
                 }
 
 
