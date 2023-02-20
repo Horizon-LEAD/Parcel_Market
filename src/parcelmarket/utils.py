@@ -256,8 +256,7 @@ def generate_Utility (UtilityFunct, variables,deterministic=0):  # TODO: How to 
      
     return Utility 
  
-    
- 
+
 def BringerProb2Bring(Cost,Time,cfg):
     
     """
@@ -267,10 +266,6 @@ def BringerProb2Bring(Cost,Time,cfg):
     Util = Coeff[0] + Coeff[1] *  Cost + Coeff[2] *  Time
     Prob = 1/(1+np.exp(-Util))
     return Prob
-
-
-
-
 
 
 def getMax (matrix,cols,rows,othermatrix =np.nan, remove =1):  # If I do the first line and column as the trip ID or parcel ID, then I can remove the lines! If not, add a key that you remove as well when you remvoe the line!

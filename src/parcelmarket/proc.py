@@ -79,6 +79,9 @@ def run_model(cfg: dict) -> list:
         cepSkimDict[cep] = parcelNodes[parcelNodes['CEP']==cep]['SKIMNR'].astype(int).tolist()
     for cepNo in range(len(cepList)):
         cepNodeDict[cepList[cepNo]] = cepNodes[cepNo]
+    
+    logger.info('CEP List     : %s', cepList)
+    logger.info('CEP Zone Dict: %s', cepZoneDict)
 
     # actually run module
     parcels = pd.read_csv(cfg['DEMANDPARCELS'])
@@ -214,19 +217,27 @@ def run_model(cfg: dict) -> list:
         locker_zones=cfg['parcelLockers_zones']
         for locker in locker_zones:
             locker = int(locker)
-            G.add_node(f"{locker}_locker", **{'node_type':'locker'}) #defining a node for each PL (ex. 566_locker)
-            attrs = {'length': 0,'travtime': 0, 'network': 'locker', 'type': 'access-egress', 'CEP': "locker"}
+            # defining a node for each PL (ex. 566_locker)
+            G.add_node(f"{locker}_locker", **{'node_type':'locker'})
+            attrs = {'length': 0,'travtime': 0, 'network': 'locker', 'type': 'access-egress',
+                     'CEP': "locker"}
             G.add_edge( f"{locker}_locker",locker, **attrs)
 
-
             for cep in PLFulfilment:
-                # closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1,[x-1 for x in cepSkimDict[cep]]].argmin()] #defining closest depot for every CEP. In this system the only CEP is Cycloon, for the final delivery to the Parcel Locker
-                closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1,cepSkimDict[cep]].argmin()]
+                # defining closest depot for every CEP. 
+                # In this system the only CEP is Cycloon, 
+                # for the final delivery to the Parcel Locker
+                # closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1, 
+                #                                         [x-1 for x in cepSkimDict[cep]]].argmin()]
+                closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1, 
+                                                        cepSkimDict[cep]].argmin()]
 
                 # nx.set_node_attributes(G, {f"{locker}_{cep}":'parcelLocker'}, 'node_type')
+                
+                # Travel time is right now car based but for bicycle can change
                 attrs = {
                     'length': skimDist[invZoneDict[locker]-1,invZoneDict[closest]-1],
-                    'travtime': skimTravTime[invZoneDict[locker]-1,invZoneDict[closest]-1],# Travel time is right now car based but for bicycle can change
+                    'travtime': skimTravTime[invZoneDict[locker]-1,invZoneDict[closest]-1],
                     'network': 'locker',
                     'type': 'tour-based',
                     'CEP': cep}

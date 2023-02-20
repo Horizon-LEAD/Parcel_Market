@@ -13,7 +13,8 @@ from os.path import join
 import numpy as np
 import pandas as pd
 from scipy import spatial
-from .utils import get_traveltime, get_distance, get_compensation, read_mtx,get_BaseWillforBring,generate_Utility,get_WillingnessToSend, getMax
+from .utils import (get_traveltime, get_distance, get_compensation, read_mtx,
+                    get_BaseWillforBring, generate_Utility, get_WillingnessToSend, getMax)
 
 
 logger = getLogger("parcelmarket.cs")
