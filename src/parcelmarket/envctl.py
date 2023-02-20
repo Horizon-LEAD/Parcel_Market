@@ -20,10 +20,9 @@ PARAMS_LIST_STR = ["Gemeenten_studyarea", "Gemeenten_CS",
                    "hub_zones", "parcelLockers_zones", "ParcelLockersfulfilment"]
 PARAMS_LIST_BOOL = []
 PARAMS_LIST_NUM = ["SCORE_ALPHAS", "SCORE_COSTS","CS_COMPENSATION",
-                   "CS_BaseBringerWillingess", "CS_BringerUtility"]
-PARAMS_JSON = ["HyperConect", "CS_BringerFilter",
-               "CS_UtilityFunction", "CS_Willingess2Send"]
-
+                   "CS_BaseBringerWillingess", "CS_Willingess2Send"]
+PARAMS_JSON = ["HyperConect", "CS_BringerFilter", "CS_BringerUtility"]
+# "CS_UtilityFunction", 
 logger = getLogger("parcelmarket.envctl")
 
 
