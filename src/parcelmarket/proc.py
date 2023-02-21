@@ -80,8 +80,8 @@ def run_model(cfg: dict) -> list:
     for cepNo in range(len(cepList)):
         cepNodeDict[cepList[cepNo]] = cepNodes[cepNo]
     
-    logger.info('CEP List     : %s', cepList)
-    logger.info('CEP Zone Dict: %s', cepZoneDict)
+    logger.debug('CEP List     : %s', cepList)
+    logger.debug('CEP Zone Dict: %s', cepZoneDict)
 
     # actually run module
     parcels = pd.read_csv(cfg['DEMANDPARCELS'])
@@ -229,8 +229,12 @@ def run_model(cfg: dict) -> list:
                 # for the final delivery to the Parcel Locker
                 # closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1, 
                 #                                         [x-1 for x in cepSkimDict[cep]]].argmin()]
-                closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1, 
-                                                        cepSkimDict[cep]].argmin()]
+                try:
+                    closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1, 
+                                                            cepSkimDict[cep]].argmin()]
+                except KeyError as exc:
+                    logger.warning('[Not found] CEP in PLFulfilment : %s', exc)
+                    continue
 
                 # nx.set_node_attributes(G, {f"{locker}_{cep}":'parcelLocker'}, 'node_type')
                 
@@ -243,32 +247,28 @@ def run_model(cfg: dict) -> list:
                     'CEP': cep}
                 G.add_edge(f"{locker}_locker", f"{closest}_{cep}", **attrs)
 
-
-
-
-
     # HyperConnect
     HyperConect = cfg['HyperConect']
 
     if cfg['HYPERCONNECTED_NETWORK']:
-
+        logger.info('Hyperconnected')
         for cep in cepList[:]:
             for parcelNode in cepZoneDict[cep]:
                 for other_cep in HyperConect[cep]:
                     # if cep == other_cep: continue
+                    if other_cep not in cepNodeDict:
+                        continue
                     for other_node in cepZoneDict[other_cep]:
                         attrs = {
-                        'length': skimDist[invZoneDict[parcelNode]-1,
-                                           invZoneDict[other_node]-1],
-                        'travtime': skimTravTime[invZoneDict[parcelNode]-1,
-                                                 invZoneDict[other_node]-1],
-                        'network': 'conventional',
-                        'type': 'consolidated',
-                        'CEP': cep}
+                            'length': skimDist[invZoneDict[parcelNode]-1,
+                                               invZoneDict[other_node]-1],
+                            'travtime': skimTravTime[invZoneDict[parcelNode]-1,
+                                                     invZoneDict[other_node]-1],
+                            'network': 'conventional',
+                            'type': 'consolidated',
+                            'CEP': cep
+                        }
                         G.add_edge(f"{parcelNode}_{cep}", f"{other_node}_{other_cep}", **attrs)
-
-        print("Hyperconnected")
-
 
     # Module 3: Network allocation
     logger.info('Perform network allocation...')
