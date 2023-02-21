@@ -233,7 +233,9 @@ def run_model(cfg: dict) -> list:
                     closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1, 
                                                             cepSkimDict[cep]].argmin()]
                 except KeyError as exc:
-                    logger.warning('[Not found] CEP in PLFulfilment : %s', exc)
+                    logger.warning(
+                        '[KeyError] PLFulfilment CEP not in cepZoneDict: %s', exc
+                    )
                     continue
 
                 # nx.set_node_attributes(G, {f"{locker}_{cep}":'parcelLocker'}, 'node_type')

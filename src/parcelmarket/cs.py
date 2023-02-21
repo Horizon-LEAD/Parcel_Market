@@ -53,9 +53,11 @@ def generate_cs_supply(
     logger.debug('cfg["CS_BringerFilter"]: %s - %s',
                  type(cfg["CS_BringerFilter"]), 
                  cfg["CS_BringerFilter"])
-    for SE_Filter in cfg["CS_BringerFilter"]:
-        logger.debug('SE_Filter          : %s - %s', type(SE_Filter), SE_Filter)
-        trips = trips.loc[trips[SE_Filter].isin(cfg["CS_BringerFilter"][SE_Filter])]
+    for filt, filt_values in cfg["CS_BringerFilter"].items():
+        try:
+            trips = trips.loc[trips[filt].isin(filt_values)]
+        except KeyError as exc:
+            logger.warning('[KeyError] filter not in trips: %s', exc)
 
     # Willingness a priori. This is the willingness to be surbscribed in the platform
     trips['CS_willing'] = np.random.uniform(0, 1, len(trips)) < trips['unique_id'].apply(lambda x: get_BaseWillforBring(cfg,x))
@@ -63,9 +65,6 @@ def generate_cs_supply(
 
     tripsCS = trips[(trips['CS_eligible'] == True)]
     tripsCS = tripsCS.drop(['CS_willing', 'CS_eligible'], axis=1)
-
-
-
 
     coordinates = [((zones.loc[zone, 'X'], zones.loc[zone, 'Y'])) for zone in zones.index]
     tree = spatial.KDTree(coordinates)
@@ -382,10 +381,6 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                         Detours  [i,index] = Detour
 
             # print("parcel ", index, " from ", len(parcels))
-
-
-
-
 
         lableTrav = tripsCS[['unique_id']].reset_index(drop=True)
         lableParcels = parcels[['Parcel_ID']].reset_index(drop=True)
