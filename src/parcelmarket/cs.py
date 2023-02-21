@@ -50,10 +50,12 @@ def generate_cs_supply(
     :rtype: pd.DataFrame
     """
 
+    logger.debug('cfg["CS_BringerFilter"]: %s - %s',
+                 type(cfg["CS_BringerFilter"]), 
+                 cfg["CS_BringerFilter"])
     for SE_Filter in cfg["CS_BringerFilter"]:
+        logger.debug('SE_Filter          : %s - %s', type(SE_Filter), SE_Filter)
         trips = trips.loc[trips[SE_Filter].isin(cfg["CS_BringerFilter"][SE_Filter])]
-
-
 
     # Willingness a priori. This is the willingness to be surbscribed in the platform
     trips['CS_willing'] = np.random.uniform(0, 1, len(trips)) < trips['unique_id'].apply(lambda x: get_BaseWillforBring(cfg,x))
