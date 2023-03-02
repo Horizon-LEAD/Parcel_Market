@@ -50,14 +50,12 @@ def generate_cs_supply(
     :rtype: pd.DataFrame
     """
 
-    logger.debug('cfg["CS_BringerFilter"]: %s - %s',
-                 type(cfg["CS_BringerFilter"]),
-                 cfg["CS_BringerFilter"])
     for filt, filt_values in cfg["CS_BringerFilter"].items():
         try:
             trips = trips.loc[trips[filt].isin(filt_values)]
         except KeyError as exc:
             logger.warning('[KeyError] filter not in trips: %s', exc)
+    logger.debug("filtered trips shape: %s", str(trips.shape))
 
     # Willingness a priori. This is the willingness to be surbscribed in the platform
     trips['CS_willing'] = np.random.uniform(0, 1, len(trips)) < trips['unique_id'].apply(lambda x: get_BaseWillforBring(cfg,x))
@@ -76,14 +74,14 @@ def generate_cs_supply(
         traveller[22] = int(zoneDict[tree.query([(traveller[17], traveller[18])])[1][0]+1]) #orig
         traveller[23] = int(zoneDict[tree.query([(traveller[19], traveller[20])])[1][0]+1]) #dest
         traveller[25] = get_distance(invZoneDict[traveller[22]], invZoneDict[traveller[23]], skimDist, nSkimZones) # in km!
-        if mode == 'Car':
+        if mode == 'car':
             traveller[24] = get_traveltime(invZoneDict[traveller[22]], invZoneDict[traveller[23]], skimTime['car'], nSkimZones, timeFac) # in hours
             traveller[24] = traveller[24] * 60 # in minutes now!
 
             cost          = traveller[25] * (cfg ['Car_CostKM'])
             traveller[28] = generate_Utility (cfg["CS_BringerUtility"],{'Cost': cost,'Time':traveller[24]})
 
-        elif mode == 'Car as Passenger':
+        elif mode == 'carPassenger':
             traveller[24] = get_traveltime(invZoneDict[traveller[22]], invZoneDict[traveller[23]], skimTime['car_passenger'], nSkimZones, timeFac) # in hours
             traveller[24] = traveller[24] * 60 # in minutes now!
             cost   = traveller[25] * (cfg ['Car_CostKM'])
