@@ -51,7 +51,7 @@ def generate_cs_supply(
     """
 
     logger.debug('cfg["CS_BringerFilter"]: %s - %s',
-                 type(cfg["CS_BringerFilter"]), 
+                 type(cfg["CS_BringerFilter"]),
                  cfg["CS_BringerFilter"])
     for filt, filt_values in cfg["CS_BringerFilter"].items():
         try:
@@ -269,7 +269,7 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
         # Detours   = np.zeros((len(tripsCS),len(parcels)))
 
         # comp = []
-        print("Starting Utility evaluation")
+        logger.info("Starting Utility evaluation")
         for index, parcel in parcels.iterrows():
             parc_orig = parcel['O_zone']
             parc_dest = parcel['D_zone']
@@ -338,7 +338,7 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
                         time_traveller_parcel = max(time_traveller_parcelT,time_traveller_parcel)
                         time_parcel_trip= max(time_parcel_tripT,time_parcel_trip)
                         time_customer_end= max(time_customer_endT,time_customer_end)
-                        
+
                         CS_TravelCost           = 0
                     if mode in ['walk', 'pt']: CS_pickup_time = droptime_pt
                     if mode in ['walk']:
@@ -397,10 +397,13 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
         matrix = Surplus
         rows = lableTrav
         cols = lableParcels
-        print("Starting matching")
+        logger.info("Starting matching")
         # print('get max')
+        logger.debug('Surpluses[%s]: %s', str(Surpluses.shape), Surpluses)
         while value != 0:
-            position,value,Surplus,Detours,detour,lableParcels,lableTrav = getMax (Surplus,lableParcels,lableTrav,Detours,remove = 1)
+            position,value,Surplus,Detours,detour,lableParcels,lableTrav = getMax(
+                Surplus, lableParcels, lableTrav, Detours, remove = 1
+            )
             if value !=0:
                 matches.update(position)
                 distances.update(detour)
@@ -426,19 +429,19 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
         parcels =  pd.merge(parcels,tripsMode,left_on='trip', right_on='unique_id')
 
         parcels[parcels ['CS_deliveryChoice']==False] ['trip'] = 'NaN'
-        
+
         UnmatchedParcels = parcels.drop(parcels[parcels['trip'].notna()].index)
         MatchedParcels  =parcels.drop(parcels[parcels['trip'].isna()].index)
-        
-        
+
+
         parcels['traveller'] = parcels['trip'].apply(lambda x: x[0:-2])
-        
+
         MatchedParcels['traveller'] = MatchedParcels['trip'].apply(lambda x: x[0:-2])
         UnmatchedParcels['traveller'] = UnmatchedParcels['trip']
-        
-        
+
+
         parcels = MatchedParcels.append(UnmatchedParcels)
-        
+
         #### THE CROWDSHIPPING TRIP DATAFRAME HAS NOT BEEN UPDATED WITH THE NEW TRIPS!!!!!!
 
         # person, trip = traveller.split('_')
