@@ -205,34 +205,34 @@ def pairwise(iterable):
 
 
 def get_compensation(dist_parcel_trip,cfg):
-    
+
     """
-    
+
     """
     Coeff = cfg["CS_COMPENSATION"]
-    Comp = Coeff[0] + Coeff[1] * dist_parcel_trip + Coeff[2] * dist_parcel_trip^2 + math.log( (Coeff[3] * dist_parcel_trip) + 1)
-    
+    Comp = Coeff[0] + Coeff[1] * dist_parcel_trip + Coeff[2] * dist_parcel_trip**2 + math.log( (Coeff[3] * dist_parcel_trip) + 1)
+
     return Comp
 
 def get_WillingnessToSend(cfg,Cost,TradCost,deterministic=0):
-    
+
     """
-    
+
     """
     Coeff = cfg["CS_Willingess2Send"]
     Will = Coeff[0] + Coeff[1]  * (Cost-TradCost)
     if deterministic == 0:
          Will += np.log(-np.log(np.random.uniform())) - np.log(-np.log(np.random.uniform()))
-    
+
     return Will
 
 def get_BaseWillforBring(cfg, unique_id):
-    
+
     """
-    
+
     """
     Coeff = cfg["CS_BaseBringerWillingess"]
-    Will = Coeff[0] + Coeff[1] *  np.random.normal(0,1) 	
+    Will = Coeff[0] + Coeff[1] *  np.random.normal(0,1)
     Prob = 1/(1+np.exp(-Will))
     return Prob
 
@@ -240,27 +240,27 @@ def generate_Utility (UtilityFunct, variables,deterministic=0):  # TODO: How to 
     '''
     UtilityFunct : Dictionary
     '''
-     
+
     try:
          Utility =UtilityFunct["ASC"]
     except:
          Utility = 0
-     
+
     for key,val in variables.items():
              # exec(key + '=val')
              Utility+=val * UtilityFunct[str(key)]
-         
+
     if deterministic == 0:
          Utility += np.log(-np.log(np.random.uniform()))
-     
-     
-    return Utility 
- 
+
+
+    return Utility
+
 
 def BringerProb2Bring(Cost,Time,cfg):
-    
+
     """
-    
+
     """
     Coeff = cfg["CS_BringerUtility"]
     Util = Coeff[0] + Coeff[1] *  Cost + Coeff[2] *  Time
@@ -268,8 +268,12 @@ def BringerProb2Bring(Cost,Time,cfg):
     return Prob
 
 
-def getMax (matrix,cols,rows,othermatrix =np.nan, remove =1):  # If I do the first line and column as the trip ID or parcel ID, then I can remove the lines! If not, add a key that you remove as well when you remvoe the line!
-    # Remove = 1 is that removes the line --> each person takes only 1 parcel per trip!!    
+def getMax(matrix, cols, rows, othermatrix =np.nan, remove=1):
+    # If I do the first line and column as the trip ID or parcel ID,
+    # then I can remove the lines!
+    # If not, add a key that you remove as well when you remvoe the line!
+    # Remove = 1 is that removes the line --> each person takes only 1 parcel per trip!!
+    logger.debug('matrix: %s', matrix)
     maximum = np.amax(matrix)
     position = np.where(matrix == maximum)
     # valueinothermatrix = othermatrix[position][0]
@@ -286,25 +290,25 @@ def getMax (matrix,cols,rows,othermatrix =np.nan, remove =1):  # If I do the fir
         othermatrix= np.delete(othermatrix,position[0][0],0) # Delete parcel (column) from list
         rows= rows.drop(rows.index[position[0][0]]).reset_index(drop=True)
     else: # Put zeros
-        matrix[position[0],:] = np.zeros(( len(matrix[position[0],:][0] )))    
-    
+        matrix[position[0],:] = np.zeros(( len(matrix[position[0],:][0] )))
+
     return pair, maximum, matrix,othermatrix,valueinothermatrix, cols,rows
 
 
 # TODO Check this!
 # def generate_Utility (UtilityFunct, variables,deterministic=0):  # TODO: How to add the variables from the columns
- 
- 
+
+
 #      for key,val in variables.items():
 #              exec(key + '=val')
-         
+
 #      Utility = eval(UtilityFunct)
-     
+
 #      if deterministic == 0:
 #          Utility += np.log(-np.log(np.random.uniform()))
-     
-     
-#      return Utility 
+
+
+#      return Utility
 
 def calc_score(
     G, u, v, orig, dest,
@@ -339,10 +343,10 @@ def calc_score(
 
     if v==dest and d['CEP'] != 'locker' and parcel["PL"] !=0:
         return 999992
-    
+
     if not cfg['HYPERCONNECTED_NETWORK']:
         if u == orig or v == dest: return 0 # access and agress links to the network have score of 0
-        
+
     # other zones than orig/dest can not be used
     if G.nodes[u]['node_type'] == 'zone' and u not in {orig, dest}:
         return 999993
@@ -367,9 +371,9 @@ def calc_score(
 
     if d['network'] != 'crowdshipping':
         if d['type']== 'access-egress' and parcel['CEP']!=d['CEP'] and u == orig: #for parcel locker, to enforce that the original CEP picks it up.
-              
+
             X3_costPup = interCEP_pickup
-            
+
     # only hub nodes may be used (no hub network at CEP depots)
     if d['network'] == 'conventional' and d['type'] == 'hub' and v not in hub_nodes:
         return 999997
