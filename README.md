@@ -111,7 +111,7 @@ parcel-market -vvv --env .env \
     sample-data/input/Zones_v4.zip \
     sample-data/input/SEGS2020.csv \
     sample-data/input/parcelNodes_v2Cycloon.zip \
-    sample-data/input/trips_Hague_Albatross.csv \
+    sample-data/input/FullTrips_Albatross.csv \
     sample-data/output/
 ```
 
