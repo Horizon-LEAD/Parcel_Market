@@ -74,14 +74,14 @@ def generate_cs_supply(
         traveller[22] = int(zoneDict[tree.query([(traveller[17], traveller[18])])[1][0]+1]) #orig
         traveller[23] = int(zoneDict[tree.query([(traveller[19], traveller[20])])[1][0]+1]) #dest
         traveller[25] = get_distance(invZoneDict[traveller[22]], invZoneDict[traveller[23]], skimDist, nSkimZones) # in km!
-        if mode == 'car':
+        if mode == 'Car':
             traveller[24] = get_traveltime(invZoneDict[traveller[22]], invZoneDict[traveller[23]], skimTime['car'], nSkimZones, timeFac) # in hours
             traveller[24] = traveller[24] * 60 # in minutes now!
 
             cost          = traveller[25] * (cfg ['Car_CostKM'])
             traveller[28] = generate_Utility (cfg["CS_BringerUtility"],{'Cost': cost,'Time':traveller[24]})
 
-        elif mode == 'carPassenger':
+        elif mode == 'Car as Passenger':
             traveller[24] = get_traveltime(invZoneDict[traveller[22]], invZoneDict[traveller[23]], skimTime['car_passenger'], nSkimZones, timeFac) # in hours
             traveller[24] = traveller[24] * 60 # in minutes now!
             cost   = traveller[25] * (cfg ['Car_CostKM'])
@@ -170,6 +170,9 @@ def cs_matching(zones, zoneDict, invZoneDict, cfg: dict) -> None:
     droptime_car = cfg['PARCELS_DROPTIME_CAR']
     droptime_pt = cfg['PARCELS_DROPTIME_PT']
     droptime_bike = cfg['PARCELS_DROPTIME_BIKE']
+
+    logger.debug('Parcels to be matched: %s', len(parcels))
+
 
     if cfg['CS_ALLOCATION'] == 'MinimumDistance':  # This is the old approach
 

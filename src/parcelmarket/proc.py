@@ -528,16 +528,23 @@ def run_model(cfg: dict) -> list:
     for index, parcel in parcel_trips_HS_pickup.iterrows():
         try:
             # add depotnumer to each parcel
-            parcel_trips_HS_pickup.at[index, 'DepotNumber'] = parcelNodes[
+            Depot = parcelNodes[
                 ((parcelNodes['CEP'] == parcel['CEP']) \
                     & (parcelNodes['AREANR'] == parcel['D_zone']))
             ]['id']
+            if isinstance(Depot , pd.core.series.Series):
+                Depot =Depot.squeeze()                
+            parcel_trips_HS_pickup.at[index, 'DepotNumber'] = Depot
+                
         # FIXME: just KeyError ?
         except Exception:
             # add depotnumer to each parcel
-            parcel_trips_HS_pickup.at[index, 'DepotNumber'] = parcelNodes[
+            Depot = parcelNodes[
                 ((parcelNodes['CEP'] == parcel['CEP']) )
             ]['id'].iloc[0]
+            if isinstance(Depot , pd.core.series.Series):
+                Depot =Depot.squeeze()
+            parcel_trips_HS_pickup.at[index, 'DepotNumber'] = Depot
             error2 += 1
 
     # output these parcels to default location for scheduling

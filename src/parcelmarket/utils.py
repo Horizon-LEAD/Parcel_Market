@@ -273,11 +273,11 @@ def getMax(matrix, cols, rows, othermatrix =np.nan, remove=1):
     # then I can remove the lines!
     # If not, add a key that you remove as well when you remvoe the line!
     # Remove = 1 is that removes the line --> each person takes only 1 parcel per trip!!
-    logger.debug('matrix: %s', matrix)
+    # logger.debug('matrix: %s', matrix)
     maximum = np.amax(matrix)
     position = np.where(matrix == maximum)
     # valueinothermatrix = othermatrix[position][0]
-
+    # logger.debug('maximum of util: %s', maximum)
     pair = {rows.iloc[position[0][0]][0]:cols.iloc[position[1][0]][0]}  # This is the result!
     valueinothermatrix = {rows.iloc[position[0][0]][0]:othermatrix[position][0]}
 
