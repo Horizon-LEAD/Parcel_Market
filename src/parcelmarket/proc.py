@@ -79,7 +79,7 @@ def run_model(cfg: dict) -> list:
         cepSkimDict[cep] = parcelNodes[parcelNodes['CEP']==cep]['SKIMNR'].astype(int).tolist()
     for cepNo in range(len(cepList)):
         cepNodeDict[cepList[cepNo]] = cepNodes[cepNo]
-    
+
     logger.debug('CEP List     : %s', cepList)
     logger.debug('CEP Zone Dict: %s', cepZoneDict)
 
@@ -224,13 +224,13 @@ def run_model(cfg: dict) -> list:
             G.add_edge( f"{locker}_locker",locker, **attrs)
 
             for cep in PLFulfilment:
-                # defining closest depot for every CEP. 
-                # In this system the only CEP is Cycloon, 
+                # defining closest depot for every CEP.
+                # In this system the only CEP is Cycloon,
                 # for the final delivery to the Parcel Locker
-                # closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1, 
+                # closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1,
                 #                                         [x-1 for x in cepSkimDict[cep]]].argmin()]
                 try:
-                    closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1, 
+                    closest = cepZoneDict[cep][skimTravTime[invZoneDict[locker]-1,
                                                             cepSkimDict[cep]].argmin()]
                 except KeyError as exc:
                     logger.warning(
@@ -239,7 +239,7 @@ def run_model(cfg: dict) -> list:
                     continue
 
                 # nx.set_node_attributes(G, {f"{locker}_{cep}":'parcelLocker'}, 'node_type')
-                
+
                 # Travel time is right now car based but for bicycle can change
                 attrs = {
                     'length': skimDist[invZoneDict[locker]-1,invZoneDict[closest]-1],
@@ -457,16 +457,22 @@ def run_model(cfg: dict) -> list:
     # loop over parcels
     for index, parcel in parcel_trips_HS_delivery.iterrows():
         try:
-            # add depotnumer to each parcel
-            parcel_trips_HS_delivery.at[index, 'DepotNumber'] = \
-                parcelNodes[((parcelNodes['CEP'] == parcel['CEP']) \
-                            & (parcelNodes['AREANR'] == parcel['O_zone']))]['id']
+            Depot = parcelNodes[
+                ((parcelNodes['CEP'] == parcel['CEP']) \
+                    & (parcelNodes['AREANR'] == parcel['O_zone']))
+            ]['id']
+            if isinstance(Depot , pd.core.series.Series):
+                Depot = Depot.squeeze()
+            parcel_trips_HS_delivery.at[index, 'DepotNumber'] = Depot
         # FIXME: just KeyError ?  Rodrigo: Don't remember which error is actually
         except Exception:
-            # Get first node as an exception
-            parcel_trips_HS_delivery.at[index, 'DepotNumber'] = \
-                parcelNodes[((parcelNodes['CEP'] == parcel['CEP']))]['id'].iloc[0]
-            error +=1
+            Depot = parcelNodes[
+                ((parcelNodes['CEP'] == parcel['CEP']) )
+            ]['id'].iloc[0]
+            if isinstance(Depot , pd.core.series.Series):
+                Depot = Depot.squeeze()
+            parcel_trips_HS_delivery.at[index, 'DepotNumber'] = Depot
+            error += 1
     # output these parcels to default location for scheduling
     parcel_trips_HS_delivery.to_csv(join(cfg["OUTDIR"], "ParcelDemand_HS_delivery.csv"),
                                     index=False)
@@ -533,9 +539,9 @@ def run_model(cfg: dict) -> list:
                     & (parcelNodes['AREANR'] == parcel['D_zone']))
             ]['id']
             if isinstance(Depot , pd.core.series.Series):
-                Depot =Depot.squeeze()                
+                Depot =Depot.squeeze()
             parcel_trips_HS_pickup.at[index, 'DepotNumber'] = Depot
-                
+
         # FIXME: just KeyError ?
         except Exception:
             # add depotnumer to each parcel
