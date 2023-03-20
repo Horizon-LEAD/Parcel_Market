@@ -92,6 +92,7 @@ def run_model(cfg: dict) -> list:
         ['L2L',"CS_eligible",'Fulfilment', 'PL'],
         axis=1
     )
+    parcels_hubspoke.to_csv(join(cfg["OUTDIR"], "ParcelDemand_ParcelHubSpoke.csv"), index=False)
 
     parcels_hyperconnected = parcels[parcels['Fulfilment']=='Hyperconnected']
 
