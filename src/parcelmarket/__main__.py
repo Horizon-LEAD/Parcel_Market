@@ -1,7 +1,4 @@
-"""
-Parcel Market
-
-Some additional information
+"""Main module - entrypoint
 """
 
 import logging
@@ -22,6 +19,12 @@ LOG_FILE_MAX_BYTES = 50e6
 LOG_MSG_FMT = "%(asctime)s %(levelname)-8s %(name)s \
 %(filename)s#L%(lineno)d %(message)s"
 LOG_DT_FMT = "%Y-%m-%d %H:%M:%S"
+
+DESCRIPTION = """
+Parcel Market
+
+Some additional information
+"""
 
 logger = logging.getLogger("parcelmarket")
 
@@ -73,7 +76,7 @@ def main():
     """
 
     # command line argument parsing
-    parser = ArgumentParser(description=__doc__,
+    parser = ArgumentParser(description=DESCRIPTION,
                             formatter_class=RawDefaultsHelpFormatter)
 
     parser.add_argument('DEMANDPARCELS', type=strfile,
