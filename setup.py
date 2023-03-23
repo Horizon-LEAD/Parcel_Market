@@ -23,7 +23,7 @@ def get_version():
         for line in fpnt:
             if line.startswith('__version__'):
                 return literal_eval(line.split('=', 1)[1].strip())
-    return '0.0.1-alpha'
+    return '0.0.0'
 
 setup(
     name='parcelmarket',
