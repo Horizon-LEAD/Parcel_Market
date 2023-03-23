@@ -21,7 +21,7 @@ logger = getLogger("parcelmarket.cs")
 
 
 def generate_cs_supply(
-    trips: pd.DataFrame, cfg:dict,
+    trips: pd.DataFrame, cfg: dict,
     zones, zoneDict: dict, invZoneDict: dict,
     nSkimZones, skimTime, skimDist,
     timeFac
@@ -29,9 +29,9 @@ def generate_cs_supply(
     """_summary_
 
     :param trips: _description_
-    :type trips: _type_
-    :param CS_willingness: _description_ # update this
-    :type CS_willingness: _type_
+    :type trips: pd.DataFrame
+    :param cfg: _description_
+    :type cfg: dict
     :param zones: _description_
     :type zones: _type_
     :param zoneDict: _description_
