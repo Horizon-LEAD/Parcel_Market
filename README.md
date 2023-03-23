@@ -6,9 +6,9 @@ _Parcel Market model for the Living Lab of The Hague for the LEAD platform._
 
 The `requirements.txt` and `Pipenv` files are provided for the setup of an environment where the module can be installed. The package includes a `setup.py` file and it can be therefore installed with a `pip install .` when we are at the same working directory as the `setup.py` file. For testing purposes, one can also install the package in editable mode `pip install -e .`.
 
-After the install is completed, an executable `parcel-market` will be available to the user.
+After the install is completed, an executable will be available to the user.
 
-Furthermore, a `Dockerfile` is provided so that the user can package the parcel market model. To build the image the following command must be issued from the project's root directory:
+Furthermore, a `Dockerfile` is provided so that the user can package the model. To build the image the following command must be issued from the project's root directory:
 
 ```
 docker build -t parcel-market:latest .
@@ -19,7 +19,7 @@ docker build -t parcel-market:latest .
 The executable's help message provides information on the parameters that are needed.
 
 ```
-parcel-market --help                                                                                                                (base) 260ms  2022-09-13 11:53:41
+$ parcel-market --help
 usage: parcel-market [-h] [-v] [--flog] [-e ENV] DEMANDPARCELS SKIMTIME SKIMDISTANCE ZONES SEGS PARCELNODES TRIPS OUTDIR
 
 Parcel Market
@@ -47,22 +47,14 @@ Furthermore, the following parameters must be provided as environment variables 
 
 ```
 # string parameters
-# Min_Detour or Surplus
-LABEL=default
-CS_BringerScore=Min_Detour
-CS_ALLOCATION  = best2best
+CS_BringerScore=Min_Detour  # Min_Detour or Surplus
+CS_ALLOCATION=best2best
 
 # boolean parameters
 CROWDSHIPPING_NETWORK=True
-COMBINE_DELIVERY_PICKUP_TOUR=True
 HYPERCONNECTED_NETWORK=True
-printKPI=True
-# TESTRUN=False
 
 # numeric parameters
-# Seed=1234
-CONSOLIDATED_MAXLOAD=500
-CS_WILLINGNESS=0.2
 PARCELS_DROPTIME_CAR=120
 PARCELS_DROPTIME_BIKE=60
 PARCELS_DROPTIME_PT=0
@@ -93,13 +85,13 @@ parcelLockers_zones=17,21
 
 # json
 HyperConect={"DHL": ["Cycloon"], "DPD": ["Cycloon"], "FedEx": ["Cycloon"],  "GLS": ["Cycloon"], "PostNL": ["Cycloon"],  "UPS": ["Cycloon"], "Cycloon": []}
-CS_BringerFilter={"age" : ["<35","35-55"] , "hh_income" : ["low","average","aboveAverage"], "following_purpose" :["Home", "Business", "Leisure", "Other", "Groceries", "Services", "Social", "BringGet", "NonGroc", "Touring"],"mode" : ["Car","Walking or Biking"]}
+CS_BringerFilter={"age" : ["<35","35-55"] , "income" : ["low","average","aboveAverage"], "following_purpose" :["Home", "Business", "Leisure", "Other", "Groceries", "Services", "Social", "BringGet", "NonGroc", "Touring"],"Mode" : ["Car","Walking or Biking"]}
 CS_BringerUtility={"ASC": 0.1, "Cost": -0.045, "Time": -0.0088}
 ```
 
 ### Examples
 
-In the following examples, it is assumed that the user's terminal is at the project's root directory. Also that all the necessary input files are located in the `sample-data/inputs` directory and that the `sample-data/outputs` directory exists.
+In the following examples, it is assumed that the user's terminal is at the project's root directory. Also that all the necessary input files are located in the `sample-data/input` directory and that the `sample-data/output` directory exists.
 
 The user can then execute the model by running the executable.
 
@@ -121,8 +113,7 @@ Finally, the model can be executed with `docker run`:
 
 ```
 docker run --rm \
-  -v $PWD/sample-data/input:/data/input \
-  -v $PWD/sample-data/output:/data/output \
+  -v $PWD/sample-data:/data \
   --env-file .env \
   parcel-market:latest \
   /data/input/Demand_parcels_fulfilment_ParcelLocker_CID_CS.csv \
@@ -131,6 +122,6 @@ docker run --rm \
   /data/input/Zones_v4.zip \
   /data/input/SEGS2020.csv \
   /data/input/parcelNodes_v2Cycloon.zip \
-  /data/input/trips_Hague_Albatross.csv \
+  /data/input/FullTrips_Albatross.csv \
   /data/output/
 ```
