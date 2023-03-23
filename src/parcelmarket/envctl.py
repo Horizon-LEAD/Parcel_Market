@@ -14,7 +14,7 @@ PARAMS_NUM = ["PARCELS_DROPTIME_CAR", "PARCELS_DROPTIME_BIKE", "PARCELS_DROPTIME
               "VOT", "PlatformComission", "CS_Costs", "TradCost", "Car_CostKM",
               "CarSpeed", "WalkBikeSpeed", "CarCO2", "CS_MaxParcelDistance"]
 PARAMS_LIST_STR = ["Gemeenten_studyarea", "Gemeenten_CS",
-                   "hub_zones", "parcelLockers_zones", "ParcelLockersfulfilment"]
+                   "parcelLockers_zones", "ParcelLockersfulfilment"]
 PARAMS_LIST_BOOL = []
 PARAMS_LIST_NUM = ["SCORE_ALPHAS", "SCORE_COSTS", "CS_COMPENSATION",
                    "CS_BaseBringerWillingess", "CS_Willingess2Send",
