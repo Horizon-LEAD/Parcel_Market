@@ -600,9 +600,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-string",
+                "name": "string array",
                 "description": "",
-                "dataType": "array-string",
+                "dataType": "string array",
                 "validators": [
                     {
                         "name": "required",
@@ -624,9 +624,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-string",
+                "name": "string array",
                 "description": "",
-                "dataType": "array-string",
+                "dataType": "string array",
                 "validators": [
                     {
                         "name": "required",
@@ -648,9 +648,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-string",
+                "name": "string array",
                 "description": "",
-                "dataType": "array-string",
+                "dataType": "string array",
                 "validators": [
                     {
                         "name": "required",
@@ -672,9 +672,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-string",
+                "name": "string array",
                 "description": "",
-                "dataType": "array-string",
+                "dataType": "string array",
                 "validators": [
                     {
                         "name": "required",
@@ -696,9 +696,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-number",
+                "name": "number array",
                 "description": "",
-                "dataType": "array-number",
+                "dataType": "number array",
                 "validators": [
                     {
                         "name": "required",
@@ -720,9 +720,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-number",
+                "name": "number array",
                 "description": "",
-                "dataType": "array-number",
+                "dataType": "number array",
                 "validators": [
                     {
                         "name": "required",
@@ -744,9 +744,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-number",
+                "name": "number array",
                 "description": "",
-                "dataType": "array-number",
+                "dataType": "number array",
                 "validators": [
                     {
                         "name": "required",
@@ -768,9 +768,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-number",
+                "name": "number array",
                 "description": "",
-                "dataType": "array-number",
+                "dataType": "number array",
                 "validators": [
                     {
                         "name": "required",
@@ -792,9 +792,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-number",
+                "name": "number array",
                 "description": "",
-                "dataType": "array-number",
+                "dataType": "number array",
                 "validators": [
                     {
                         "name": "required",
@@ -816,9 +816,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-number",
+                "name": "number array",
                 "description": "",
-                "dataType": "array-number",
+                "dataType": "number array",
                 "validators": [
                     {
                         "name": "required",
@@ -840,9 +840,9 @@
             "inputType": "ENV",
             "chartType": "NONE",
             "modelDataType": {
-                "name": "array-number",
+                "name": "number array",
                 "description": "",
-                "dataType": "array-number",
+                "dataType": "number array",
                 "validators": [
                     {
                         "name": "required",
@@ -931,6 +931,7 @@
             "variableName": "ParcelDemand_HS_delivery",
             "description": "",
             "isOutput": true,
+            "isOutputDir": false,
             "isOptional": false,
             "chartType": "NONE",
             "modelDataType": {
@@ -950,6 +951,7 @@
             "variableName": "ParcelDemand_HS_pickup",
             "description": "",
             "isOutput": true,
+            "isOutputDir": false,
             "isOptional": false,
             "chartType": "NONE",
             "modelDataType": {
@@ -969,6 +971,7 @@
             "variableName": "ParcelDemand_ParcelHubSpoke",
             "description": "",
             "isOutput": true,
+            "isOutputDir": false,
             "isOptional": false,
             "chartType": "NONE",
             "modelDataType": {
@@ -988,6 +991,7 @@
             "variableName": "ParcelDemand_ParcelTrips",
             "description": "",
             "isOutput": true,
+            "isOutputDir": false,
             "isOptional": false,
             "chartType": "NONE",
             "modelDataType": {
@@ -1007,6 +1011,7 @@
             "variableName": "Parcels_CS",
             "description": "",
             "isOutput": true,
+            "isOutputDir": false,
             "isOptional": false,
             "chartType": "NONE",
             "modelDataType": {
@@ -1026,6 +1031,7 @@
             "variableName": "Parcels_CS_matched",
             "description": "",
             "isOutput": true,
+            "isOutputDir": false,
             "isOptional": false,
             "chartType": "NONE",
             "modelDataType": {
@@ -1045,6 +1051,7 @@
             "variableName": "TripsCS",
             "description": "",
             "isOutput": true,
+            "isOutputDir": false,
             "isOptional": false,
             "chartType": "NONE",
             "modelDataType": {
@@ -1064,6 +1071,7 @@
             "variableName": "kpis",
             "description": "File containing key KPIs estimated in the model.",
             "isOutput": true,
+            "isOutputDir": false,
             "isOptional": false,
             "chartType": "NONE",
             "modelDataType": {
