@@ -639,30 +639,6 @@
             }
         },
         {
-            "name": "parcelLockers_zones",
-            "variableName": "parcelLockers_zones",
-            "description": "parcelLockers_zones",
-            "isOutput": false,
-            "isOutputDir": false,
-            "isOptional": false,
-            "inputType": "ENV",
-            "chartType": "NONE",
-            "modelDataType": {
-                "name": "string array",
-                "description": "",
-                "dataType": "string array",
-                "validators": [
-                    {
-                        "name": "required",
-                        "description": "required",
-                        "validatorType": "required",
-                        "value": ""
-                    }
-                ],
-                "objectKeys": []
-            }
-        },
-        {
             "name": "ParcelLockersfulfilment",
             "variableName": "ParcelLockersfulfilment",
             "description": "ParcelLockersfulfilment",
